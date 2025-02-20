@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import ProductCard from '../components/ProductCard';
 import { Product } from '../types/product';
 import productsData from '../components/products.json';
-import CategoryFilter from '../components/CategoryFilter';
 
 const ProductsAdvanced: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
