@@ -6,8 +6,15 @@
 @use './components/_product_detaills' as *;
 @use './components/_checkout' as *;
 @use './components/_cart' as *;
+@use './components/_productList' as *;
+@use './components/productAdvanced' as *;
 
 
 @use './components/_footer' as *;
 @use './mixins' as *;
 @use './themes' as *; // <-- que esté al final
+
+
+.main-content {
+    margin-top: 80px; // Ajusta según la altura real de tu header
+  }

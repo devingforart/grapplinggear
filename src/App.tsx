@@ -2,7 +2,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
-import Products from './pages/Products';
+import ProductsAdvanced from './pages/ProductsAdvanced';
 import ProductDetail from './pages/ProductDetail';
 import Cart from './components/Cart';
 import Checkout from './components/Checkout';
@@ -17,14 +17,18 @@ const App: React.FC = () => {
       <Header />
       <ThemeToggle />
       <NotificationContainer />
+      <div className="main-content">
+
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/productos" element={<Products />} />
+        <Route path="/productos" element={<ProductsAdvanced />} />
         <Route path="/producto/:id" element={<ProductDetail />} />
         <Route path="/carrito" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/marketing" element={<Marketing />} />
       </Routes>
+      </div>
+
     </BrowserRouter>
   );
 };

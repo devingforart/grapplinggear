@@ -1,21 +1,18 @@
-// src/components/ProductList.tsx
+// src/pages/ProductsAdvanced.tsx
 import React, { useState } from 'react';
-import ProductCard from './ProductCard';
+import ProductCard from '../components/ProductCard';
 import { Product } from '../types/product';
-import productsData from './products.json';
-import CategoryFilter from './CategoryFilter';
+import productsData from '../components/products.json';
 
-const ProductList: React.FC = () => {
+const ProductsAdvanced: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState('default');
 
   const products: Product[] = productsData.products;
-
-  // Obtén la lista única de categorías
   const categories = Array.from(new Set(products.map(product => product.category)));
 
-  // Filtra los productos según categoría y búsqueda
+  // Filtrado por categoría y búsqueda
   let filteredProducts = products.filter(product => {
     const matchesCategory = selectedCategory ? product.category === selectedCategory : true;
     const matchesSearch =
@@ -24,7 +21,7 @@ const ProductList: React.FC = () => {
     return matchesCategory && matchesSearch;
   });
 
-  // Ordena los productos según la opción seleccionada
+  // Ordenación según opción seleccionada
   if (sortOption === 'priceAsc') {
     filteredProducts = [...filteredProducts].sort((a, b) => a.price - b.price);
   } else if (sortOption === 'priceDesc') {
@@ -36,36 +33,56 @@ const ProductList: React.FC = () => {
   }
 
   return (
-    <div className="product-list">
-      <div className="product-list__controls">
-        <CategoryFilter 
-          categories={categories} 
-          selectedCategory={selectedCategory} 
-          onSelectCategory={setSelectedCategory} 
-        />
-        <div className="product-list__search-sort">
-          <input 
-            type="text" 
-            placeholder="Buscar productos..." 
-            value={searchQuery} 
-            onChange={e => setSearchQuery(e.target.value)} 
+    <div className="products-advanced">
+      <aside className="sidebar">
+        <h3>Filtrar</h3>
+        <div className="filter-section">
+          <label>Categorías</label>
+          <ul>
+            <li
+              onClick={() => setSelectedCategory('')}
+              className={!selectedCategory ? 'active' : ''}
+            >
+              Todos
+            </li>
+            {categories.map(cat => (
+              <li
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={selectedCategory === cat ? 'active' : ''}
+              >
+                {cat}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="filter-section">
+          <label>Buscar</label>
+          <input
+            type="text"
+            placeholder="Buscar productos..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
           />
+        </div>
+        <div className="filter-section">
+          <label>Ordenar por</label>
           <select value={sortOption} onChange={e => setSortOption(e.target.value)}>
-            <option value="default">Ordenar por</option>
+            <option value="default">Relevancia</option>
             <option value="priceAsc">Precio: menor a mayor</option>
             <option value="priceDesc">Precio: mayor a menor</option>
             <option value="nameAsc">Nombre: A-Z</option>
             <option value="nameDesc">Nombre: Z-A</option>
           </select>
         </div>
-      </div>
-      <div className="product-list__grid">
+      </aside>
+      <main className="products-grid">
         {filteredProducts.map(product => (
           <ProductCard key={product.id} product={product} />
         ))}
-      </div>
+      </main>
     </div>
   );
 };
 
-export default ProductList;
+export default ProductsAdvanced;

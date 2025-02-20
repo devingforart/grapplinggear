@@ -5,7 +5,7 @@ Contenido:
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
-import Products from './pages/Products';
+import ProductsAdvanced from './pages/ProductsAdvanced';
 import ProductDetail from './pages/ProductDetail';
 import Cart from './components/Cart';
 import Checkout from './components/Checkout';
@@ -22,7 +22,7 @@ const App: React.FC = () => {
       <NotificationContainer />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/productos" element={<Products />} />
+        <Route path="/productos" element={<ProductsAdvanced />} />
         <Route path="/producto/:id" element={<ProductDetail />} />
         <Route path="/carrito" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
@@ -60,6 +60,101 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </InventoryProvider>
   </React.StrictMode>
 );
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/pages/ProductsAdvanced.tsx
+
+Contenido:
+// src/pages/ProductsAdvanced.tsx
+import React, { useState } from 'react';
+import ProductCard from '../components/ProductCard';
+import { Product } from '../types/product';
+import productsData from '../components/products.json';
+
+const ProductsAdvanced: React.FC = () => {
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortOption, setSortOption] = useState('default');
+
+  const products: Product[] = productsData.products;
+  const categories = Array.from(new Set(products.map(product => product.category)));
+
+  // Filtrado por categoría y búsqueda
+  let filteredProducts = products.filter(product => {
+    const matchesCategory = selectedCategory ? product.category === selectedCategory : true;
+    const matchesSearch =
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.description.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
+  // Ordenación según opción seleccionada
+  if (sortOption === 'priceAsc') {
+    filteredProducts = [...filteredProducts].sort((a, b) => a.price - b.price);
+  } else if (sortOption === 'priceDesc') {
+    filteredProducts = [...filteredProducts].sort((a, b) => b.price - a.price);
+  } else if (sortOption === 'nameAsc') {
+    filteredProducts = [...filteredProducts].sort((a, b) => a.name.localeCompare(b.name));
+  } else if (sortOption === 'nameDesc') {
+    filteredProducts = [...filteredProducts].sort((a, b) => b.name.localeCompare(a.name));
+  }
+
+  return (
+    <div className="products-advanced">
+      <aside className="sidebar">
+        <h3>Filtrar</h3>
+        <div className="filter-section">
+          <label>Categorías</label>
+          <ul>
+            <li
+              onClick={() => setSelectedCategory('')}
+              className={!selectedCategory ? 'active' : ''}
+            >
+              Todos
+            </li>
+            {categories.map(cat => (
+              <li
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={selectedCategory === cat ? 'active' : ''}
+              >
+                {cat}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="filter-section">
+          <label>Buscar</label>
+          <input
+            type="text"
+            placeholder="Buscar productos..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <div className="filter-section">
+          <label>Ordenar por</label>
+          <select value={sortOption} onChange={e => setSortOption(e.target.value)}>
+            <option value="default">Relevancia</option>
+            <option value="priceAsc">Precio: menor a mayor</option>
+            <option value="priceDesc">Precio: mayor a menor</option>
+            <option value="nameAsc">Nombre: A-Z</option>
+            <option value="nameDesc">Nombre: Z-A</option>
+          </select>
+        </div>
+      </aside>
+      <main className="products-grid">
+        {filteredProducts.map(product => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </main>
+    </div>
+  );
+};
+
+export default ProductsAdvanced;
 
 
 --------------------------------------------------------------------------------
@@ -242,22 +337,114 @@ export default ProductDetail;
 
 --------------------------------------------------------------------------------
 
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/CategoryFilter.tsx
+
+Contenido:
+// src/components/CategoryFilter.tsx
+import React from 'react';
+
+interface CategoryFilterProps {
+  categories: string[];
+  selectedCategory: string;
+  onSelectCategory: (category: string) => void;
+}
+
+const CategoryFilter: React.FC<CategoryFilterProps> = ({ categories, selectedCategory, onSelectCategory }) => {
+  return (
+    <div className="category-filter">
+      <button 
+        onClick={() => onSelectCategory('')}
+        className={!selectedCategory ? 'active' : ''}
+      >
+        Todos
+      </button>
+      {categories.map(category => (
+        <button 
+          key={category}
+          onClick={() => onSelectCategory(category)}
+          className={selectedCategory === category ? 'active' : ''}
+        >
+          {category}
+        </button>
+      ))}
+    </div>
+  );
+};
+
+export default CategoryFilter;
+
+
+--------------------------------------------------------------------------------
+
 /home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/ProductList.tsx
 
 Contenido:
 // src/components/ProductList.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import ProductCard from './ProductCard';
 import { Product } from '../types/product';
 import productsData from './products.json';
+import CategoryFilter from './CategoryFilter';
 
 const ProductList: React.FC = () => {
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortOption, setSortOption] = useState('default');
+
   const products: Product[] = productsData.products;
+
+  // Obtén la lista única de categorías
+  const categories = Array.from(new Set(products.map(product => product.category)));
+
+  // Filtra los productos según categoría y búsqueda
+  let filteredProducts = products.filter(product => {
+    const matchesCategory = selectedCategory ? product.category === selectedCategory : true;
+    const matchesSearch =
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.description.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
+  // Ordena los productos según la opción seleccionada
+  if (sortOption === 'priceAsc') {
+    filteredProducts = [...filteredProducts].sort((a, b) => a.price - b.price);
+  } else if (sortOption === 'priceDesc') {
+    filteredProducts = [...filteredProducts].sort((a, b) => b.price - a.price);
+  } else if (sortOption === 'nameAsc') {
+    filteredProducts = [...filteredProducts].sort((a, b) => a.name.localeCompare(b.name));
+  } else if (sortOption === 'nameDesc') {
+    filteredProducts = [...filteredProducts].sort((a, b) => b.name.localeCompare(a.name));
+  }
+
   return (
     <div className="product-list">
-      {products.map(product => (
-        <ProductCard key={product.id} product={product} />
-      ))}
+      <div className="product-list__controls">
+        <CategoryFilter 
+          categories={categories} 
+          selectedCategory={selectedCategory} 
+          onSelectCategory={setSelectedCategory} 
+        />
+        <div className="product-list__search-sort">
+          <input 
+            type="text" 
+            placeholder="Buscar productos..." 
+            value={searchQuery} 
+            onChange={e => setSearchQuery(e.target.value)} 
+          />
+          <select value={sortOption} onChange={e => setSortOption(e.target.value)}>
+            <option value="default">Ordenar por</option>
+            <option value="priceAsc">Precio: menor a mayor</option>
+            <option value="priceDesc">Precio: mayor a menor</option>
+            <option value="nameAsc">Nombre: A-Z</option>
+            <option value="nameDesc">Nombre: Z-A</option>
+          </select>
+        </div>
+      </div>
+      <div className="product-list__grid">
+        {filteredProducts.map(product => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </div>
     </div>
   );
 };
@@ -623,6 +810,7 @@ Contenido:
     {
       "id": 1,
       "name": "Gi Tradicional",
+      "category": "Gi",
       "description": "Gi de alta calidad para jiu jitsu.",
       "price": 100,
       "images": [
@@ -640,6 +828,7 @@ Contenido:
     {
       "id": 2,
       "name": "No Gi Rashguard",
+      "category": "Rashguard",
       "description": "Rashguard resistente y cómodo, disponible en varios diseños.",
       "price": 60,
       "images": [
@@ -657,6 +846,7 @@ Contenido:
     {
       "id": 3,
       "name": "Shorts de Combate",
+      "category": "Shorts",
       "description": "Shorts ideales para combates y entrenamientos de grappling.",
       "price": 40,
       "images": [
@@ -672,6 +862,7 @@ Contenido:
     {
       "id": 4,
       "name": "Shorts de Combate",
+      "category": "Shorts",
       "description": "Shorts ideales para combates y entrenamientos de grappling.",
       "price": 40,
       "images": [
@@ -699,6 +890,7 @@ Contenido:
     {
       "id": 5,
       "name": "Shorts de Combate",
+      "category": "Shorts",
       "description": "Shorts ideales para combates y entrenamientos de grappling.",
       "price": 40,
       "images": [
@@ -715,6 +907,7 @@ Contenido:
     {
       "id": 6,
       "name": "Shorts de Combate",
+      "category": "Shorts",
       "description": "Shorts ideales para combates y entrenamientos de grappling.",
       "price": 40,
       "images": [
@@ -735,6 +928,7 @@ Contenido:
     {
       "id": 7,
       "name": "Shorts de Combate",
+      "category": "Shorts",
       "description": "Shorts ideales para combates y entrenamientos de grappling.",
       "price": 40,
       "images": [
@@ -766,22 +960,26 @@ Contenido:
 
 Contenido:
 // src/components/Header.tsx
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CartContext } from '../context/CartContext';
 import '../scss/components/_header.scss';
 
 const Header: React.FC = () => {
   const { cartItems } = useContext(CartContext);
-  // Calcula el total de items sumando las cantidades
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const toggleMobileMenu = () => setIsMobileMenuOpen(prev => !prev);
 
   return (
     <header className="header">
       <div className="header__logo">
         <Link to="/">Grappling Gear</Link>
       </div>
-      <nav className="header__nav">
+
+      {/* Menú para pantallas de escritorio */}
+      <nav className="header__nav desktop">
         <Link to="/productos">Productos</Link>
         <Link to="/marketing">Marketing</Link>
         <Link to="/carrito" className="header__cart">
@@ -791,6 +989,47 @@ const Header: React.FC = () => {
           )}
         </Link>
       </nav>
+
+      {/* Botón menú hamburguesa para tablet y móvil */}
+      <div className="header__mobile-menu">
+        <button 
+          onClick={toggleMobileMenu} 
+          className="mobile-menu__toggle" 
+          aria-label="Abrir menú de navegación"
+        >
+          <span className="mobile-menu__bar"></span>
+          <span className="mobile-menu__bar"></span>
+          <span className="mobile-menu__bar"></span>
+        </button>
+      </div>
+
+      {/* Overlay del menú móvil */}
+      {isMobileMenuOpen && (
+        <div className="mobile-menu__overlay" onClick={toggleMobileMenu}>
+          <div 
+            className="mobile-menu__content" 
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button 
+              className="mobile-menu__close" 
+              onClick={toggleMobileMenu} 
+              aria-label="Cerrar menú de navegación"
+            >
+              &times;
+            </button>
+            <nav className="mobile-menu__nav">
+              <Link to="/productos" onClick={toggleMobileMenu}>Productos</Link>
+              <Link to="/marketing" onClick={toggleMobileMenu}>Marketing</Link>
+              <Link to="/carrito" onClick={toggleMobileMenu} className="mobile-cart">
+                Carrito
+                {totalItems > 0 && (
+                  <span className="header__cart-badge">{totalItems}</span>
+                )}
+              </Link>
+            </nav>
+          </div>
+        </div>
+      )}
     </header>
   );
 };
@@ -1306,6 +1545,8 @@ Contenido:
 @use './components/_product_detaills' as *;
 @use './components/_checkout' as *;
 @use './components/_cart' as *;
+@use './components/_productList' as *;
+@use './components/productAdvanced' as *;
 
 
 @use './components/_footer' as *;
@@ -1439,6 +1680,7 @@ Contenido:
   &__nav {
     display: flex;
     gap: 2rem;
+
     a {
       font-size: 1rem;
       font-weight: 500;
@@ -1455,20 +1697,21 @@ Contenido:
         background: var(--accent-color);
         transition: width 0.3s;
       }
-      
+
       &:hover:after {
         width: 100%;
       }
     }
   }
+
   &__cart {
     position: relative;
     display: inline-flex;
     align-items: center;
     padding: 0.5rem;
     font-size: 1rem;
-    text-decoration: none;
     color: var(--primary-color);
+    text-decoration: none;
 
     &:hover {
       color: var(--accent-color);
@@ -1487,28 +1730,185 @@ Contenido:
     font-weight: bold;
   }
 
+  // Menú móvil: oculto en desktop
+  &__mobile-menu {
+    display: none;
+  }
 }
 
-/* Responsive: en móvil se puede sustituir por un menú hamburguesa */
-@media (max-width: 768px) {
-  .header {
-    padding: 0.75rem 1.5rem;
-    &__nav {
-      display: none;
+/* Estilos para el botón de menú hamburguesa y overlay móvil */
+.mobile-menu__toggle {
+  background: transparent;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+
+  .mobile-menu__bar {
+    width: 100%;
+    height: 2px;
+    background-color: var(--primary-color);
+    transition: background-color 0.3s;
+  }
+}
+
+.mobile-menu__overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8); // Aumentamos la opacidad para un mejor contraste
+  display: flex;
+  justify-content: flex-end;
+  z-index: 1100;
+}
+
+
+.mobile-menu__content {
+  background-color: var(--background-color);
+  width: 80%;
+  max-width: 300px;
+  height: 100%;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.mobile-menu__close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  color: var(--primary-color);
+}
+
+.mobile-menu__nav {
+  margin-top: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  a {
+    font-size: 1.2rem;
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.3s;
+
+    &:hover {
+      color: var(--accent-color);
     }
   }
 }
-.header__cart-badge {
-  position: absolute;
-  top: -5px;
-  right: -10px;
-  background-color: var(--accent-color);
-  color: var(--background-color);
-  border-radius: 50%;
-  padding: 0.2rem 0.5rem;
-  font-size: 0.75rem;
-  font-weight: bold;
+
+/* Responsive: Muestra menú hamburguesa en tablet y móvil */
+@media (max-width: 768px) {
+  .header {
+    padding: 0.75rem 1.5rem;
+
+    &__nav.desktop {
+      display: none;
+    }
+    &__mobile-menu {
+      display: block;
+    }
+  }
 }
+
+.mobile-menu__overlay {
+  position: fixed;
+  top: 0;
+  left: 0; /* Abarca toda la pantalla */
+  width: 100%;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8); // Fondo oscuro para mayor contraste
+  display: flex;
+  justify-content: flex-end;
+  z-index: 1100;
+  opacity: 0;
+  animation: fadeIn 0.3s forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* ------------------------------
+   PANEL LATERAL DEL MENÚ MÓVIL
+--------------------------------*/
+.mobile-menu__content {
+  background-color: var(--background-color);
+  width: 80%;
+  max-width: 300px;
+  height: 100%;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transform: translateX(100%);
+  animation: slideIn 0.3s forwards;
+  box-shadow: -4px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes slideIn {
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* ------------------------------
+   BOTÓN DE CERRAR
+--------------------------------*/
+.mobile-menu__close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--primary-color);
+  transition: color 0.2s;
+  
+  &:hover {
+    color: var(--accent-color);
+  }
+}
+
+/* ------------------------------
+   NAVEGACIÓN DEL MENÚ MÓVIL
+--------------------------------*/
+.mobile-menu__nav {
+  margin-top: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  a {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: var(--primary-color);
+    text-decoration: none;
+    padding-bottom: 0.2rem;
+    transition: color 0.2s, border-bottom 0.2s;
+
+    &:hover {
+      color: var(--accent-color);
+      border-bottom: 1px solid var(--accent-color);
+    }
+  }
+}
+
+
 
 
 --------------------------------------------------------------------------------
@@ -1814,6 +2214,7 @@ Contenido:
   justify-content: center;
   box-shadow: 0 6px 12px rgba(0,0,0,0.3);
   transition: transform 0.2s, background-color 0.3s;
+  z-index: 4000;
   
   &:hover {
     transform: scale(1.1);
@@ -1928,6 +2329,138 @@ Contenido:
       .btn:hover {
         background-color: var(--secondary-hover-color);
       }
+    }
+  }
+  
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_productAdvanced.scss
+
+Contenido:
+// src/scss/components/_productsAdvanced.scss
+
+.products-advanced {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 2rem;
+    padding: 2rem;
+  
+    .sidebar {
+      background-color: var(--background-color);
+      border: 1px solid var(--secondary-hover-color);
+      border-radius: 8px;
+      padding: 1.5rem;
+      height: fit-content;
+  
+      h3 {
+        margin-bottom: 1rem;
+        color: var(--primary-color);
+        font-size: 1.25rem;
+      }
+  
+      .filter-section {
+        margin-bottom: 1.5rem;
+  
+        label {
+          display: block;
+          font-weight: bold;
+          margin-bottom: 0.5rem;
+          color: var(--primary-color);
+        }
+  
+        ul {
+          list-style: none;
+          padding: 0;
+  
+          li {
+            padding: 0.5rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s, color 0.3s;
+            &:hover,
+            &.active {
+              background-color: var(--accent-color);
+              color: var(--background-color);
+            }
+          }
+        }
+  
+        input,
+        select {
+          width: 100%;
+          padding: 0.5rem;
+          border: 1px solid var(--secondary-hover-color);
+          border-radius: 4px;
+          background-color: var(--background-color);
+          color: var(--text-color);
+        }
+      }
+    }
+  
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+  }
+  
+  /* Opcional: ajustes responsive */
+  @media (max-width: 768px) {
+    .products-advanced {
+      grid-template-columns: 1fr;
+    }
+    .sidebar {
+      margin-bottom: 1.5rem;
+    }
+  }
+  
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_productList.scss
+
+Contenido:
+// src/scss/components/_productList.scss
+
+.product-list {
+    padding: 2rem;
+  
+    &__controls {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+  
+      @media (min-width: 768px) {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+  
+      .product-list__search-sort {
+        display: flex;
+        gap: 1rem;
+  
+        input {
+          padding: 0.75rem;
+          border: 1px solid var(--secondary-hover-color);
+          border-radius: 4px;
+          flex: 1;
+        }
+  
+        select {
+          padding: 0.75rem;
+          border: 1px solid var(--secondary-hover-color);
+          border-radius: 4px;
+        }
+      }
+    }
+  
+    &__grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
     }
   }
   
@@ -2228,6 +2761,7 @@ Contenido:
     {
       "id": 1,
       "name": "Gi Tradicional",
+      "category": "Gi",
       "description": "Gi de alta calidad para jiu jitsu.",
       "price": 100,
       "images": [
@@ -2245,6 +2779,7 @@ Contenido:
     {
       "id": 2,
       "name": "No Gi Rashguard",
+      "category": "Rashguard",
       "description": "Rashguard resistente y cómodo, disponible en varios diseños.",
       "price": 60,
       "images": [
@@ -2262,6 +2797,7 @@ Contenido:
     {
       "id": 3,
       "name": "Shorts de Combate",
+      "category": "Shorts",
       "description": "Shorts ideales para combates y entrenamientos de grappling.",
       "price": 40,
       "images": [
@@ -2277,6 +2813,7 @@ Contenido:
     {
       "id": 4,
       "name": "Shorts de Combate",
+      "category": "Shorts",
       "description": "Shorts ideales para combates y entrenamientos de grappling.",
       "price": 40,
       "images": [
@@ -2304,6 +2841,7 @@ Contenido:
     {
       "id": 5,
       "name": "Shorts de Combate",
+      "category": "Shorts",
       "description": "Shorts ideales para combates y entrenamientos de grappling.",
       "price": 40,
       "images": [
@@ -2320,6 +2858,7 @@ Contenido:
     {
       "id": 6,
       "name": "Shorts de Combate",
+      "category": "Shorts",
       "description": "Shorts ideales para combates y entrenamientos de grappling.",
       "price": 40,
       "images": [
@@ -2340,6 +2879,7 @@ Contenido:
     {
       "id": 7,
       "name": "Shorts de Combate",
+      "category": "Shorts",
       "description": "Shorts ideales para combates y entrenamientos de grappling.",
       "price": 40,
       "images": [

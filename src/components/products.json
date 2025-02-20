@@ -3,6 +3,7 @@
     {
       "id": 1,
       "name": "Gi Tradicional",
+      "category": "Gi",
       "description": "Gi de alta calidad para jiu jitsu.",
       "price": 100,
       "images": [
@@ -20,6 +21,7 @@
     {
       "id": 2,
       "name": "No Gi Rashguard",
+      "category": "Rashguard",
       "description": "Rashguard resistente y cómodo, disponible en varios diseños.",
       "price": 60,
       "images": [
@@ -37,6 +39,7 @@
     {
       "id": 3,
       "name": "Shorts de Combate",
+      "category": "Shorts",
       "description": "Shorts ideales para combates y entrenamientos de grappling.",
       "price": 40,
       "images": [
@@ -52,6 +55,7 @@
     {
       "id": 4,
       "name": "Shorts de Combate",
+      "category": "Shorts",
       "description": "Shorts ideales para combates y entrenamientos de grappling.",
       "price": 40,
       "images": [
@@ -79,6 +83,7 @@
     {
       "id": 5,
       "name": "Shorts de Combate",
+      "category": "Shorts",
       "description": "Shorts ideales para combates y entrenamientos de grappling.",
       "price": 40,
       "images": [
@@ -95,6 +100,7 @@
     {
       "id": 6,
       "name": "Shorts de Combate",
+      "category": "Shorts",
       "description": "Shorts ideales para combates y entrenamientos de grappling.",
       "price": 40,
       "images": [
@@ -115,6 +121,7 @@
     {
       "id": 7,
       "name": "Shorts de Combate",
+      "category": "Shorts",
       "description": "Shorts ideales para combates y entrenamientos de grappling.",
       "price": 40,
       "images": [
