@@ -1,0 +1,36 @@
+.product-grid-creative {
+    padding: 4rem 2rem;
+    background: #f9f9f9;
+    opacity: 0;
+    transform: translateY(50px);
+    transition: all 0.8s ease-out;
+  
+    &.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  
+    .collection-intro {
+      text-align: center;
+      margin-bottom: 2rem;
+    
+      h2,
+      p {
+        color: #000; // Por defecto, para tema claro: texto negro
+      }
+    }
+    
+    html.theme-dark .collection-intro {
+      h2,
+      p {
+        color: #fff; // En tema oscuro: texto blanco
+      }
+    }
+      
+    &__list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+  }
+  

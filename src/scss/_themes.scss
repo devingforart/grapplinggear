@@ -3,8 +3,12 @@
 
 html {
   @include vars.theme(vars.$light-colors);
+  // Overlay para el Hero en tema claro: degradado de negro
+  --hero-overlay: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(243, 238, 238, 0.3));
 }
 
 html.theme-dark {
   @include vars.theme(vars.$dark-colors);
+  // Overlay para el Hero en tema oscuro: degradado de blanco para resaltar el contenido
+  --hero-overlay: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.3));
 }

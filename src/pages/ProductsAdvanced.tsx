@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import ProductCard from '../components/ProductCard';
 import { Product } from '../types/product';
 import productsData from '../components/products.json';
+import CategoryFilter from '../components/CategoryFilter';
 
 const ProductsAdvanced: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -39,18 +40,11 @@ const ProductsAdvanced: React.FC = () => {
         <div className="filter-section">
           <label>Categorías</label>
           <ul>
-            <li
-              onClick={() => setSelectedCategory('')}
-              className={!selectedCategory ? 'active' : ''}
-            >
+            <li onClick={() => setSelectedCategory('')} className={!selectedCategory ? 'active' : ''}>
               Todos
             </li>
             {categories.map(cat => (
-              <li
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={selectedCategory === cat ? 'active' : ''}
-              >
+              <li key={cat} onClick={() => setSelectedCategory(cat)} className={selectedCategory === cat ? 'active' : ''}>
                 {cat}
               </li>
             ))}

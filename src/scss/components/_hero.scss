@@ -1,72 +1,144 @@
-
-/* src/scss/components/_hero.scss */
 .hero {
   position: relative;
   width: 100%;
-  height: 80vh; // Ajusta la altura del banner según prefieras
-
-  /* Posiciona la imagen de fondo de modo que la parte superior se vea */
-  background: url('/pictures/MV12-2111233.jpg') center 20% / 100% auto no-repeat;
-  
+  height: 100vh; // Altura completa para una experiencia inmersiva
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--background-color);
 
-  /* Overlay opcional para oscurecer la imagen y mejorar la legibilidad */
-  &::after {
-    content: "";
-    position: absolute;
-    inset: 0; /* top, right, bottom, left = 0 */
-    background: rgba(235, 221, 221, 0.4);
+  // Imagen de fondo con efecto parallax y animación de zoom sutil
+  &__background {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('/pictures/MV12-2111233.jpg') center/cover no-repeat;
+    animation: zoomIn 20s ease-in-out infinite;
     z-index: 1;
   }
 
-  .hero__banner {
-    position: relative; /* Contenedor relativo para el posicionamiento del contenido */
+  // Overlay para mejorar la legibilidad del contenido
+  &__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
+    z-index: 2;
+    // Se usa la variable definida según el theme, pero en mobile se sobreescribirá
+    background: var(--hero-overlay, rgba(0, 0, 0, 0.5));
   }
 
-  .hero__content {
-    position: absolute;
-    bottom: 2rem; /* Ubica el botón en la parte inferior del banner */
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 2;
+  // Contenedor del contenido principal
+  &__container {
+    position: relative;
+    z-index: 3;
+    max-width: 1200px;
+    width: 90%;
+    padding: 2rem;
     text-align: center;
+  }
 
-    .btn {
-      display: inline-block;
-      padding: 1rem 2rem;
-      background-color: var(--primary-color);
-      color: var(--background-color);
-      border: 2px solid var(--primary-color);
-      border-radius: 50px;
-      text-transform: uppercase;
-      font-weight: 600;
-      transition: background-color 0.3s, color 0.3s;
-
-      &:hover {
-        background-color: var(--accent-color);
-        border-color: var(--accent-color);
-        color: var(--background-color);
-      }
+  // Estilos para el contenido textual
+  &__content {
+    color: var(--text-color, #fff);
+    
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      text-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+    }
+    
+    p {
+      font-size: 1.25rem;
+      margin-bottom: 2rem;
+      text-shadow: 0 3px 5px rgba(0, 0, 0, 0.4);
     }
   }
-}
 
-/* Ajustes responsive para pantallas pequeñas */
-@media (max-width: 768px) {
-  .hero {
-    height: 60vh; // Menor altura en dispositivos móviles
-  }
-  
-  .hero__content {
-    bottom: 1rem;
+  // Botón de llamada a la acción con nuevo estilo para mejor contraste
+  &__cta {
+    display: inline-block;
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    font-weight: bold;
+    background: var(--accent-color);         // Fondo con el color de acento
+    color: var(--background-color);           // Texto usando el color de fondo (claro u oscuro)
+    border: none;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    position: relative;
+    overflow: hidden;
     
-    .btn {
-      padding: 0.75rem 1.5rem;
+    &:hover {
+      background: #c6962c;  // Un tono un poco más oscuro (puedes ajustar este valor)
+      transform: translateY(-3px);
+    }
+  }
+
+  // Indicador de scroll con animación de rebote
+  &__scroll {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--background-color, #fff);
+    font-size: 0.875rem;
+    animation: fadeIn 1.5s ease-out forwards;
+  }
+
+  &__scroll-arrow {
+    width: 24px;
+    height: 24px;
+    margin-top: 0.5rem;
+    animation: bounce 2s infinite;
+  }
+
+  // Animaciones clave
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(8px); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes zoomIn {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+
+  // Ajustes para dispositivos móviles
+  @media (max-width: 768px) {
+    // Para mobile, sobreescribimos el overlay con un degradado más oscuro
+    &__overlay {
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5));
+    }
+    
+    // Agregamos un fondo semi-transparente al contenedor para mejorar la legibilidad
+    &__container {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 1rem;
+      border-radius: 8px;
+    }
+    
+    &__content {
+      h1 { font-size: 2.25rem; }
+      p { font-size: 1rem; }
+    }
+    
+    &__cta {
+      padding: 0.5rem 1.5rem;
+      font-size: 0.875rem;
     }
   }
 }

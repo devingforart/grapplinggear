@@ -76,6 +76,7 @@ import React, { useState } from 'react';
 import ProductCard from '../components/ProductCard';
 import { Product } from '../types/product';
 import productsData from '../components/products.json';
+import CategoryFilter from '../components/CategoryFilter';
 
 const ProductsAdvanced: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -112,18 +113,11 @@ const ProductsAdvanced: React.FC = () => {
         <div className="filter-section">
           <label>Categorías</label>
           <ul>
-            <li
-              onClick={() => setSelectedCategory('')}
-              className={!selectedCategory ? 'active' : ''}
-            >
+            <li onClick={() => setSelectedCategory('')} className={!selectedCategory ? 'active' : ''}>
               Todos
             </li>
             {categories.map(cat => (
-              <li
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={selectedCategory === cat ? 'active' : ''}
-              >
+              <li key={cat} onClick={() => setSelectedCategory(cat)} className={selectedCategory === cat ? 'active' : ''}>
                 {cat}
               </li>
             ))}
@@ -1132,10 +1126,24 @@ import '../scss/components/_hero.scss';
 const Hero: React.FC = () => {
   return (
     <section className="hero">
-      <div className="hero__banner">
+      <div className="hero__background"></div>
+      <div className="hero__overlay"></div>
+      
+      <div className="hero__container">
         <div className="hero__content">
-          <a href="/productos" className="btn">Explora la colección</a>
+          <h1>Descubre la Innovación en Grappling</h1>
+          <p>Equipamiento de alta calidad para el guerrero moderno</p>
+          <a href="#nuestra-coleccion" className="hero__cta">
+            Explora la colección
+          </a>
         </div>
+      </div>
+      
+      <div className="hero__scroll">
+        <span className="hero__scroll-text">Desliza hacia abajo</span>
+        <svg className="hero__scroll-arrow" viewBox="0 0 24 24">
+          <path d="M12 16l-6-6h12z" />
+        </svg>
       </div>
     </section>
   );
@@ -1180,26 +1188,35 @@ export default NotificationContainer;
 Contenido:
 // src/components/ProductGrid.tsx
 import React from 'react';
+import { motion } from 'framer-motion';
 import ProductCard from './ProductCard';
-import '../scss/components/_product.scss';
 import productsData from './products.json';
 import { Product } from '../types/product';
 
-
-
 const ProductGrid: React.FC = () => {
-
   const products: Product[] = productsData.products;
 
   return (
-    <section className="product-grid">
-      <h2>Nuestra Colección</h2>
-      <div className="product-grid__list">
+    <motion.section 
+      id="nuestra-coleccion"
+      className="product-grid-creative"
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+    >
+      <div className="collection-intro">
+        <h2>Nuestra Colección</h2>
+        <p>
+          Descubre la fusión perfecta entre tecnología y pasión por el grappling.
+        </p>
+      </div>
+      <div className="product-grid-creative__list">
         {products.map(product => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>
-    </section>
+    </motion.section>
   );
 };
 
@@ -1569,6 +1586,8 @@ Contenido:
 @use './components/_cart' as *;
 @use './components/_productList' as *;
 @use './components/productAdvanced' as *;
+@use './components/_productGrid' as *;
+
 
 
 @use './components/_footer' as *;
@@ -1590,10 +1609,14 @@ Contenido:
 
 html {
   @include vars.theme(vars.$light-colors);
+  // Overlay para el Hero en tema claro: degradado de negro
+  --hero-overlay: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(243, 238, 238, 0.3));
 }
 
 html.theme-dark {
   @include vars.theme(vars.$dark-colors);
+  // Overlay para el Hero en tema oscuro: degradado de blanco para resaltar el contenido
+  --hero-overlay: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.3));
 }
 
 
@@ -1605,6 +1628,9 @@ Contenido:
 // src/scss/_base.scss
 * {
   box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -1935,6 +1961,104 @@ Contenido:
 }
 
 
+// Animaciones de entrada y salida
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes slideIn {
+  to { transform: translateX(0); }
+}
+
+@keyframes slideOut {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
+
+/* Overlay del menú móvil */
+.mobile-menu__overlay {
+  position: fixed;
+  top: 0;
+  left: 0; /* Abarca toda la pantalla */
+  width: 100%;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8); // Fondo oscuro para mayor contraste
+  display: flex;
+  justify-content: flex-end;
+  z-index: 1100;
+  opacity: 0;
+  animation: fadeIn 0.3s forwards;
+}
+
+/* Clase para la animación de cierre del overlay */
+.mobile-menu__overlay.closing {
+  animation: fadeOut 0.3s forwards;
+}
+
+/* Panel lateral del menú móvil */
+.mobile-menu__content {
+  background-color: var(--background-color);
+  width: 80%;
+  max-width: 300px;
+  height: 100%;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transform: translateX(100%);
+  animation: slideIn 0.3s forwards;
+  box-shadow: -4px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Clase para la animación de cierre del panel */
+.mobile-menu__content.closing {
+  animation: slideOut 0.3s forwards;
+}
+
+/* Botón de cerrar */
+.mobile-menu__close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--primary-color);
+  transition: color 0.2s;
+  
+  &:hover {
+    color: var(--accent-color);
+  }
+}
+
+/* Navegación del menú móvil */
+.mobile-menu__nav {
+  margin-top: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  a {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: var(--primary-color);
+    text-decoration: none;
+    padding-bottom: 0.2rem;
+    transition: color 0.2s, border-bottom 0.2s;
+
+    &:hover {
+      color: var(--accent-color);
+      border-bottom: 1px solid var(--accent-color);
+    }
+  }
+}
+
 
 
 --------------------------------------------------------------------------------
@@ -1942,74 +2066,143 @@ Contenido:
 /home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_hero.scss
 
 Contenido:
-/* src/scss/components/_hero.scss */
+// src/scss/components/_hero.scss
 .hero {
   position: relative;
   width: 100%;
-  height: 80vh; // Ajusta la altura del banner según prefieras
-
-  /* Posiciona la imagen de fondo de modo que la parte superior se vea */
-  background: url('public/pictures/MV12-2111233.jpg') center 20% / 100% auto no-repeat;
-  
+  height: 100vh; // Altura completa para una experiencia inmersiva
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--background-color);
 
-  /* Overlay opcional para oscurecer la imagen y mejorar la legibilidad */
-  &::after {
-    content: "";
-    position: absolute;
-    inset: 0; /* top, right, bottom, left = 0 */
-    background: rgba(235, 221, 221, 0.4);
+  // Imagen de fondo con efecto parallax en desktop y animación de zoom sutil
+  &__background {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('/pictures/MV12-2111233.jpg') center/cover no-repeat;
+    animation: zoomIn 20s ease-in-out infinite;
     z-index: 1;
   }
 
-  .hero__banner {
-    position: relative; /* Contenedor relativo para el posicionamiento del contenido */
+  // Overlay para mejorar la legibilidad del contenido
+  &__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
+    z-index: 2;
+    // Se utiliza la variable definida según el theme
+    background: var(--hero-overlay, rgba(0, 0, 0, 0.5));
   }
 
-  .hero__content {
-    position: absolute;
-    bottom: 2rem; /* Ubica el botón en la parte inferior del banner */
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 2;
+  // Contenedor del contenido principal
+  &__container {
+    position: relative;
+    z-index: 3;
+    max-width: 1200px;
+    width: 90%;
+    padding: 2rem;
     text-align: center;
+  }
 
-    .btn {
-      display: inline-block;
-      padding: 1rem 2rem;
-      background-color: var(--primary-color);
-      color: var(--background-color);
-      border: 2px solid var(--primary-color);
-      border-radius: 50px;
-      text-transform: uppercase;
-      font-weight: 600;
-      transition: background-color 0.3s, color 0.3s;
-
-      &:hover {
-        background-color: var(--accent-color);
-        border-color: var(--accent-color);
-        color: var(--background-color);
-      }
+  // Estilos para el contenido textual
+  &__content {
+    // Usamos la variable de color de texto para que sea legible en ambos temas
+    color: var(--text-color, #fff);
+    
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      text-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+    }
+    
+    p {
+      font-size: 1.25rem;
+      margin-bottom: 2rem;
+      text-shadow: 0 3px 5px rgba(0, 0, 0, 0.4);
     }
   }
-}
 
-/* Ajustes responsive para pantallas pequeñas */
-@media (max-width: 768px) {
-  .hero {
-    height: 60vh; // Menor altura en dispositivos móviles
-  }
-  
-  .hero__content {
-    bottom: 1rem;
+  // Botón de llamada a la acción con micro-interacciones
+  &__cta {
+    display: inline-block;
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    font-weight: bold;
+    // En este caso usamos el color de fondo (que en cada tema contrasta con el texto)
+    color: var(--background-color, #fff);
+    background: transparent;
+    border: 2px solid var(--background-color, #fff);
+    border-radius: 50px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
     
-    .btn {
-      padding: 0.75rem 1.5rem;
+    &:hover {
+      background: var(--background-color, #fff);
+      color: var(--text-color, #000);
+      transform: translateY(-3px);
+    }
+  }
+
+  // Indicador de scroll con animación de rebote
+  &__scroll {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--background-color, #fff);
+    font-size: 0.875rem;
+    animation: fadeIn 1.5s ease-out forwards;
+  }
+
+  &__scroll-arrow {
+    width: 24px;
+    height: 24px;
+    margin-top: 0.5rem;
+    animation: bounce 2s infinite;
+  }
+
+  // Animaciones clave
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(8px); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes zoomIn {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+
+  // Ajustes responsive: en dispositivos móviles se mantienen las mismas posiciones
+  @media (max-width: 768px) {
+    &__background {
+      position: absolute;
+    }
+    
+    &__content {
+      h1 { font-size: 2.25rem; }
+      p { font-size: 1rem; }
+    }
+    
+    &__cta {
+      padding: 0.5rem 1.5rem;
+      font-size: 0.875rem;
     }
   }
 }
@@ -2364,80 +2557,117 @@ Contenido:
 /home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_productAdvanced.scss
 
 Contenido:
-// src/scss/components/_productsAdvanced.scss
-
 .products-advanced {
-    display: grid;
-    grid-template-columns: 250px 1fr;
-    gap: 2rem;
-    padding: 2rem;
-  
-    .sidebar {
-      background-color: var(--background-color);
-      border: 1px solid var(--secondary-hover-color);
-      border-radius: 8px;
-      padding: 1.5rem;
-      height: fit-content;
-  
-      h3 {
-        margin-bottom: 1rem;
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 2rem;
+  padding: 2rem;
+
+  .sidebar {
+    background-color: var(--background-color);
+    border: 1px solid var(--secondary-hover-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    height: fit-content;
+
+    h3 {
+      margin-bottom: 1rem;
+      color: var(--primary-color);
+      font-size: 1.25rem;
+    }
+
+    .filter-section {
+      margin-bottom: 1.5rem;
+
+      label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
         color: var(--primary-color);
-        font-size: 1.25rem;
       }
-  
-      .filter-section {
-        margin-bottom: 1.5rem;
-  
-        label {
-          display: block;
-          font-weight: bold;
-          margin-bottom: 0.5rem;
-          color: var(--primary-color);
-        }
-  
-        ul {
-          list-style: none;
-          padding: 0;
-  
-          li {
-            padding: 0.5rem;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: background-color 0.3s, color 0.3s;
-            &:hover,
-            &.active {
-              background-color: var(--accent-color);
-              color: var(--background-color);
-            }
+
+      ul {
+        list-style: none;
+        padding: 0;
+
+        li {
+          padding: 0.5rem;
+          cursor: pointer;
+          border-radius: 4px;
+          transition: background-color 0.3s, color 0.3s;
+
+          &:hover,
+          &.active {
+            background-color: var(--accent-color);
+            color: var(--background-color);
           }
         }
+      }
+
+      input,
+      select {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid var(--secondary-hover-color);
+        border-radius: 4px;
+        background-color: var(--background-color);
+        color: var(--text-color);
+      }
+    }
+  }
+
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    .sidebar {
+      margin-bottom: 1.5rem;
+    }
+  }
+}
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_productGrid.scss
+
+Contenido:
+.product-grid-creative {
+    padding: 4rem 2rem;
+    background: #f9f9f9;
+    opacity: 0;
+    transform: translateY(50px);
+    transition: all 0.8s ease-out;
   
-        input,
-        select {
-          width: 100%;
-          padding: 0.5rem;
-          border: 1px solid var(--secondary-hover-color);
-          border-radius: 4px;
-          background-color: var(--background-color);
-          color: var(--text-color);
-        }
+    &.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  
+    .collection-intro {
+      text-align: center;
+      margin-bottom: 2rem;
+  
+      h2 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        color: var(--primary-color);
+      }
+  
+      p {
+        font-size: 1.2rem;
+        color: var(--text-color);
       }
     }
   
-    .products-grid {
+    &__list {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 1.5rem;
-    }
-  }
-  
-  /* Opcional: ajustes responsive */
-  @media (max-width: 768px) {
-    .products-advanced {
-      grid-template-columns: 1fr;
-    }
-    .sidebar {
-      margin-bottom: 1.5rem;
     }
   }
   
@@ -2450,46 +2680,46 @@ Contenido:
 // src/scss/components/_productList.scss
 
 .product-list {
-    padding: 2rem;
-  
-    &__controls {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-  
-      @media (min-width: 768px) {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-      }
-  
-      .product-list__search-sort {
-        display: flex;
-        gap: 1rem;
-  
-        input {
-          padding: 0.75rem;
-          border: 1px solid var(--secondary-hover-color);
-          border-radius: 4px;
-          flex: 1;
-        }
-  
-        select {
-          padding: 0.75rem;
-          border: 1px solid var(--secondary-hover-color);
-          border-radius: 4px;
-        }
-      }
+  padding: 2rem;
+
+  &__controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+
+    @media (min-width: 768px) {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
     }
-  
-    &__grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 2rem;
+
+    .product-list__search-sort {
+      display: flex;
+      gap: 1rem;
+
+      input {
+        padding: 0.75rem;
+        border: 1px solid var(--secondary-hover-color);
+        border-radius: 4px;
+        flex: 1;
+      }
+
+      select {
+        padding: 0.75rem;
+        border: 1px solid var(--secondary-hover-color);
+        border-radius: 4px;
+      }
     }
   }
-  
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+  }
+}
+
 
 --------------------------------------------------------------------------------
 
