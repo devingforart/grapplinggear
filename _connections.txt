@@ -134,18 +134,19 @@ export default Products;
 
 Contenido:
 // src/pages/ProductDetail.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Product } from '../types/product';
 import productsData from '../components/products.json';
+import FullZoomImage from '../components/FullZoomImage';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  console.log('ID recibido:', id);
-  
   const products: Product[] = productsData.products;
-  // Convertimos el id del producto a string para comparar correctamente
-  const product = products.find((item) => item.id.toString() === id);
+  const product = products.find(item => item.id.toString() === id);
+
+  // Controla la imagen seleccionada de la galería
+  const [selectedImage, setSelectedImage] = useState(product?.images[0] || '');
 
   if (!product) {
     return <div>Producto no encontrado</div>;
@@ -153,22 +154,36 @@ const ProductDetail: React.FC = () => {
 
   return (
     <div className="product-detail">
-      {/* Muestra la primera imagen como principal */}
-      <img src={product.images[0]} alt={product.name} />
-      
-      {/* Si existen varias imágenes, se muestra una galería */}
-      {product.images.length > 1 && (
-        <div className="product-gallery">
-          {product.images.map((img, idx) => (
-            <img key={idx} src={img} alt={`${product.name} ${idx + 1}`} />
-          ))}
+      <div className="product-detail__container">
+        {/* Vista del producto con FullZoomImage */}
+        <div className="product-detail__viewer">
+          <FullZoomImage
+            src={selectedImage}
+            alt={product.name}
+            thumbnailWidth={500}  // Tamaño moderado del thumbnail
+            thumbnailHeight={400}
+          />
         </div>
-      )}
-      
-      <h2>{product.name}</h2>
-      <p>{product.description}</p>
-      <p>${product.price}</p>
-      <button>Añadir al Carrito</button>
+        {/* Información del producto */}
+        <div className="product-detail__info">
+          <h2>{product.name}</h2>
+          <p>{product.description}</p>
+          <p className="price">${product.price}</p>
+          <button className="btn add-to-cart">Añadir al Carrito</button>
+        </div>
+      </div>
+      {/* Galería de miniaturas */}
+      <div className="product-detail__gallery">
+        {product.images.map((img, index) => (
+          <img
+            key={index}
+            src={img}
+            alt={`${product.name} ${index + 1}`}
+            className={`product-detail__thumb ${selectedImage === img ? 'selected' : ''}`}
+            onClick={() => setSelectedImage(img)}
+          />
+        ))}
+      </div>
     </div>
   );
 };
@@ -202,6 +217,219 @@ const ProductList: React.FC = () => {
 };
 
 export default ProductList;
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/ZoomImage.tsx
+
+Contenido:
+// src/components/ZoomImage.tsx
+import React, { useState, useRef } from 'react';
+
+interface ZoomImageProps {
+  src: string;
+  alt?: string;
+  width?: number;   // Ancho del contenedor en px (por defecto: 300)
+  height?: number;  // Alto del contenedor en px (por defecto: 300)
+  zoomLevel?: number; // Factor de zoom (por defecto: 2)
+}
+
+const ZoomImage: React.FC<ZoomImageProps> = ({
+  src,
+  alt = '',
+  width = 300,
+  height = 300,
+  zoomLevel = 2,
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [lensStyle, setLensStyle] = useState<{ display: string; left: number; top: number }>({
+    display: 'none',
+    left: 0,
+    top: 0,
+  });
+  const [backgroundPosition, setBackgroundPosition] = useState('0% 0%');
+
+  const lensSize = 100; // Tamaño de la lupa (en px)
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    // Calcula la posición de la lupa centrada en el cursor
+    let lensX = x - lensSize / 2;
+    let lensY = y - lensSize / 2;
+
+    // Evita que la lupa se salga del contenedor
+    if (lensX < 0) lensX = 0;
+    if (lensY < 0) lensY = 0;
+    if (lensX > rect.width - lensSize) lensX = rect.width - lensSize;
+    if (lensY > rect.height - lensSize) lensY = rect.height - lensSize;
+
+    // Calcula la posición de fondo para la lupa (en porcentaje)
+    const bgPosX = (x / rect.width) * 100;
+    const bgPosY = (y / rect.height) * 100;
+
+    setBackgroundPosition(`${bgPosX}% ${bgPosY}%`);
+    setLensStyle({ display: 'block', left: lensX, top: lensY });
+  };
+
+  const handleMouseEnter = () => {
+    setLensStyle(prev => ({ ...prev, display: 'block' }));
+  };
+
+  const handleMouseLeave = () => {
+    setLensStyle(prev => ({ ...prev, display: 'none' }));
+  };
+
+  return (
+    <div
+      className="zoom-image-container"
+      ref={containerRef}
+      style={{
+        width: `${width}px`,
+        height: `${height}px`,
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      {/* Imagen base */}
+      <img
+        src={src}
+        alt={alt}
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+        }}
+      />
+      {/* Lupa o zoom */}
+      <div
+        className="zoom-lens"
+        style={{
+          display: lensStyle.display,
+          position: 'absolute',
+          left: lensStyle.left,
+          top: lensStyle.top,
+          width: `${lensSize}px`,
+          height: `${lensSize}px`,
+          borderRadius: '50%',
+          border: '2px solid var(--accent-color)',
+          backgroundImage: `url(${src})`,
+          backgroundRepeat: 'no-repeat',
+          backgroundSize: `${width * zoomLevel}px ${height * zoomLevel}px`,
+          backgroundPosition: backgroundPosition,
+          pointerEvents: 'none',
+          boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
+        }}
+      />
+    </div>
+  );
+};
+
+export default ZoomImage;
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/FullZoomImage.tsx
+
+Contenido:
+// src/components/FullZoomImage.tsx
+import React, { useState, useRef, useEffect } from 'react';
+
+interface FullZoomImageProps {
+  src: string;
+  alt?: string;
+  thumbnailWidth?: number;  // Ancho del thumbnail (por defecto: 300px)
+  thumbnailHeight?: number; // Alto del thumbnail (por defecto: 300px)
+}
+
+const FullZoomImage: React.FC<FullZoomImageProps> = ({
+  src,
+  alt = '',
+  thumbnailWidth = 300,
+  thumbnailHeight = 300,
+}) => {
+  const [hovered, setHovered] = useState(false);
+  const [naturalSize, setNaturalSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Obtiene las dimensiones naturales de la imagen
+  useEffect(() => {
+    const img = new Image();
+    img.src = src;
+    img.onload = () => {
+      setNaturalSize({ width: img.naturalWidth, height: img.naturalHeight });
+    };
+  }, [src]);
+
+  return (
+    <div
+      className="full-zoom-image-container"
+      ref={containerRef}
+      style={{
+        position: 'relative',
+        width: `${thumbnailWidth}px`,
+        height: `${thumbnailHeight}px`,
+        overflow: 'visible', // Permite que el overlay se muestre fuera del contenedor
+        cursor: 'zoom-in',
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {/* Imagen en tamaño reducido */}
+      <img
+        src={src}
+        alt={alt}
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          display: 'block',
+        }}
+      />
+      {/* Overlay que muestra la imagen en tamaño original */}
+      {hovered && (
+        <div
+          className="full-zoom-overlay"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: '10%', // Se posiciona a la derecha del thumbnail
+            zIndex: 999,
+            border: '2px solid var(--accent-color)',
+            backgroundColor: '#fff',
+            boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
+            maxWidth: '90vw',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            marginLeft: '1rem',
+          }}
+        >
+          <img
+            src={src}
+            alt={alt}
+            style={{
+              width: naturalSize.width,
+              height: naturalSize.height,
+              display: 'block',
+            }}
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default FullZoomImage;
 
 
 --------------------------------------------------------------------------------
@@ -262,6 +490,110 @@ export default Cart;
 
 --------------------------------------------------------------------------------
 
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/products.json
+
+Contenido:
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "Gi Tradicional",
+      "description": "Gi de alta calidad para jiu jitsu.",
+      "price": 100,
+      "images": [
+        "/pictures/ArtBoard/Artboard1Blackfront.webp",
+        "/pictures/ArtBoard/Artboard1BlackSide.webp"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "No Gi Rashguard",
+      "description": "Rashguard resistente y cómodo, disponible en varios diseños.",
+      "price": 60,
+      "images": [
+        "/pictures/ArtBoard/Artboard1WhitefrontWhite.webp",
+        "/pictures/ArtBoard/Artboard1WhitesideWhite.webp"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Shorts de Combate",
+      "description": "Shorts ideales para combates y entrenamientos de grappling.",
+      "price": 40,
+      "images": [
+       "/pictures/gordobrian/dorada_front.webp"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Shorts de Combate",
+      "description": "Shorts ideales para combates y entrenamientos de grappling.",
+      "price": 40,
+      "images": [
+        "/pictures/kingz/draft_rash_front/DSC_6926_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6932_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6933_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6938_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6940_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6942_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6944_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6948_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6949_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6950_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6951_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6952_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6955_1620x.webp"     
+        
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Shorts de Combate",
+      "description": "Shorts ideales para combates y entrenamientos de grappling.",
+      "price": 40,
+      "images": [
+       "/pictures/gordobrian/negra/blackgordonusaSSback.webp",
+       "/pictures/gordobrian/negra/blackgordonusaSSfront.webp"
+      ]
+    },   {
+      "id": 6,
+      "name": "Shorts de Combate",
+      "description": "Shorts ideales para combates y entrenamientos de grappling.",
+      "price": 40,
+      "images": [
+       "/pictures/kingz/galvao/DSC_0426_1620x.webp",
+       "/pictures/kingz/galvao/DSC_0433_1620x.webp",
+       "/pictures/kingz/galvao/DSC_0438_1620x.webp",
+       "/pictures/kingz/galvao/DSC_0440_1620x.webp",
+       "/pictures/kingz/galvao/DSC_0442_1620x.webp",
+       "/pictures/kingz/galvao/DSC_0446_1620x.webp"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Shorts de Combate",
+      "description": "Shorts ideales para combates y entrenamientos de grappling.",
+      "price": 40,
+      "images": [
+       "/pictures/kingz/negrashark/DSC_6956_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6961_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6965_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6967_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6969_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6971_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6975_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6976_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6977_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6978_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6979_1620x.webp"
+      ]
+    }
+  ]
+}
+
+
+--------------------------------------------------------------------------------
+
 /home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/Header.tsx
 
 Contenido:
@@ -317,6 +649,7 @@ Contenido:
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Product } from '../types/product';
+import ZoomImage from './ZoomImage';
 
 interface ProductCardProps {
   product: Product;
@@ -326,13 +659,16 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   return (
     <div className="product-card">
       <div className="product-card__image">
-        <img src={product.images[0]} alt={product.name} />
+        {/* Ajustamos la imagen con dimensiones moderadas */}
+        <ZoomImage src={product.images[0]} alt={product.name} width={280} height={160} zoomLevel={2} />
       </div>
-      <div className="product-card__content">
+      <div className="product-card__info">
         <h3>{product.name}</h3>
-        <p>{product.description}</p>
-        <p>${product.price}</p>
-        <Link to={`/producto/${product.id}`}>Ver Detalle</Link>
+        <p>{product.description.substring(0, 70)}...</p>
+        <p className="price">${product.price}</p>
+        <Link to={`/producto/${product.id}`} className="btn">
+          Ver Detalle
+        </Link>
       </div>
     </div>
   );
@@ -457,6 +793,8 @@ Contenido:
 @use './components/_header' as *;
 @use './components/_hero' as *;
 @use './components/_product' as *;
+@use './components/_product_detaills' as *;
+
 @use './components/_footer' as *;
 @use './mixins' as *;
 @use './themes' as *; // <-- que esté al final
@@ -674,80 +1012,80 @@ Contenido:
 /home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_product.scss
 
 Contenido:
+// src/scss/components/_product.scss
+
 .product-card {
   background-color: var(--background-color);
   border: 1px solid var(--primary-color);
   border-radius: 10px;
   overflow: hidden;
   transition: transform 0.3s, box-shadow 0.3s;
+  max-width: 300px; /* Ancho máximo para evitar que se vea gigante */
+  margin: 1rem auto; /* Centrado y espacio alrededor */
   display: flex;
   flex-direction: column;
 
   &:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   }
 
   &__image {
     width: 100%;
-    height: 200px; // Altura fija para todas las imágenes
+    position: relative;
+    height: 160px; /* Fijamos la altura para la imagen */
     overflow: hidden;
   }
 
-  &__image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; // Se asegura de que la imagen se recorte y ajuste
-  }
-
-  &__content {
-    padding: 1rem;
+  &__info {
+    padding: 0.75rem;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
 
     h3 {
       margin: 0;
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       color: var(--primary-color);
     }
 
     p {
       margin: 0.5rem 0;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       color: var(--text-color);
-      flex-grow: 1;
     }
 
-    a {
-      align-self: start;
-      padding: 0.75rem;
+    .price {
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.5rem 1rem;
       background-color: var(--secondary-color);
       color: var(--background-color);
-      text-transform: uppercase;
-      font-weight: 600;
       border-radius: 50px;
-      transition: background-color 0.3s;
+      text-transform: uppercase;
+      font-size: 0.8rem;
       text-decoration: none;
+      transition: background-color 0.3s;
       margin-top: auto;
+      align-self: flex-start;
+    }
 
-      &:hover {
-        background-color: var(--secondary-hover-color);
-      }
+    .btn:hover {
+      background-color: var(--secondary-hover-color);
     }
   }
 }
-.product-detail img {
-  width: 100%;
-  max-height: 400px;
-  object-fit: cover;
-}
 
-.product-gallery img {
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
-  margin-right: 0.5rem;
+
+.product-grid__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
 }
 
 
@@ -779,6 +1117,195 @@ Contenido:
     transform: scale(1.1);
     background-color: var(--secondary-color);
   }
+}
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_full_zoom_image.scss
+
+Contenido:
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_product_detaills.scss
+
+Contenido:
+.product-detail {
+    padding: 1rem;
+  
+    &__container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      align-items: flex-start;
+    }
+  
+    &__viewer {
+      flex: 1 1 500px;
+      max-width: 500px;
+    }
+  
+    &__info {
+      flex: 1 1 300px;
+      
+      h2 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: var(--primary-color);
+      }
+  
+      p {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+        color: var(--text-color);
+      }
+  
+      .price {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+      }
+  
+      .add-to-cart {
+        padding: 0.75rem 1.5rem;
+        background-color: var(--secondary-color);
+        color: var(--background-color);
+        border: none;
+        border-radius: 50px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+  
+      .add-to-cart:hover {
+        background-color: var(--secondary-hover-color);
+      }
+    }
+  
+    &__gallery {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+  
+      .product-detail__thumb {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: border-color 0.3s;
+  
+        &.selected {
+          border-color: var(--accent-color);
+        }
+      }
+    }
+  }
+  
+
+--------------------------------------------------------------------------------
+
+src/components/products.json
+
+Contenido:
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "Gi Tradicional",
+      "description": "Gi de alta calidad para jiu jitsu.",
+      "price": 100,
+      "images": [
+        "/pictures/ArtBoard/Artboard1Blackfront.webp",
+        "/pictures/ArtBoard/Artboard1BlackSide.webp"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "No Gi Rashguard",
+      "description": "Rashguard resistente y cómodo, disponible en varios diseños.",
+      "price": 60,
+      "images": [
+        "/pictures/ArtBoard/Artboard1WhitefrontWhite.webp",
+        "/pictures/ArtBoard/Artboard1WhitesideWhite.webp"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Shorts de Combate",
+      "description": "Shorts ideales para combates y entrenamientos de grappling.",
+      "price": 40,
+      "images": [
+       "/pictures/gordobrian/dorada_front.webp"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Shorts de Combate",
+      "description": "Shorts ideales para combates y entrenamientos de grappling.",
+      "price": 40,
+      "images": [
+        "/pictures/kingz/draft_rash_front/DSC_6926_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6932_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6933_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6938_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6940_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6942_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6944_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6948_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6949_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6950_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6951_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6952_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6955_1620x.webp"     
+        
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Shorts de Combate",
+      "description": "Shorts ideales para combates y entrenamientos de grappling.",
+      "price": 40,
+      "images": [
+       "/pictures/gordobrian/negra/blackgordonusaSSback.webp",
+       "/pictures/gordobrian/negra/blackgordonusaSSfront.webp"
+      ]
+    },   {
+      "id": 6,
+      "name": "Shorts de Combate",
+      "description": "Shorts ideales para combates y entrenamientos de grappling.",
+      "price": 40,
+      "images": [
+       "/pictures/kingz/galvao/DSC_0426_1620x.webp",
+       "/pictures/kingz/galvao/DSC_0433_1620x.webp",
+       "/pictures/kingz/galvao/DSC_0438_1620x.webp",
+       "/pictures/kingz/galvao/DSC_0440_1620x.webp",
+       "/pictures/kingz/galvao/DSC_0442_1620x.webp",
+       "/pictures/kingz/galvao/DSC_0446_1620x.webp"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Shorts de Combate",
+      "description": "Shorts ideales para combates y entrenamientos de grappling.",
+      "price": 40,
+      "images": [
+       "/pictures/kingz/negrashark/DSC_6956_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6961_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6965_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6967_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6969_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6971_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6975_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6976_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6977_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6978_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6979_1620x.webp"
+      ]
+    }
+  ]
 }
 
 

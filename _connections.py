@@ -1,10 +1,12 @@
 import os
 
 files_to_process = [
-"/home/southatoms/Escritorio/develop/personal/grappling-gear/src"
+"/home/southatoms/Escritorio/develop/personal/grappling-gear/src",
+"src/components/products.json"
+
 ]
 
-file_extensions = ['scss','tsx' ]
+file_extensions = ['scss','tsx','json' ]
 output_file = '_connections.txt'
 
 def is_code_file(file_path):

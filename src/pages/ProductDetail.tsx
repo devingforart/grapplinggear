@@ -25,7 +25,7 @@ const ProductDetail: React.FC = () => {
           <FullZoomImage
             src={selectedImage}
             alt={product.name}
-            thumbnailWidth={500}  // Tamaño moderado del thumbnail
+            thumbnailWidth={500}
             thumbnailHeight={400}
           />
         </div>
@@ -34,6 +34,23 @@ const ProductDetail: React.FC = () => {
           <h2>{product.name}</h2>
           <p>{product.description}</p>
           <p className="price">${product.price}</p>
+
+          {/* Sección de talles disponibles y stock */}
+          <div className="product-detail__extra">
+            <div className="product-detail__sizes">
+              <h3>Talles Disponibles</h3>
+              <ul>
+                {product.availableSizes && product.availableSizes.map((size, index) => (
+                  <li key={index}>{size}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="product-detail__stock">
+              <h3>Stock</h3>
+              <p>{product.stock} unidades disponibles</p>
+            </div>
+          </div>
+
           <button className="btn add-to-cart">Añadir al Carrito</button>
         </div>
       </div>

@@ -4,6 +4,9 @@
 @use './components/_hero' as *;
 @use './components/_product' as *;
 @use './components/_product_detaills' as *;
+@use './components/_checkout' as *;
+@use './components/_cart' as *;
+
 
 @use './components/_footer' as *;
 @use './mixins' as *;
