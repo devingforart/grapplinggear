@@ -1,0 +1,10 @@
+// src/scss/_themes.scss
+@use './variables' as vars;
+
+html {
+  @include vars.theme(vars.$light-colors);
+}
+
+html.theme-dark {
+  @include vars.theme(vars.$dark-colors);
+}

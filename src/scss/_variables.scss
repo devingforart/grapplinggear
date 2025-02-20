@@ -1,0 +1,27 @@
+// src/scss/_variables.scss
+$light-colors: (
+  primary: #000000,           // Texto/elementos destacados en negro
+  secondary: #333333,         // Detalles secundarios
+  secondary-hover: #555555,   // Hover sutil
+  background: #ffffff,        // Fondo blanco
+  text: #222222,              // Texto oscuro
+  accent: #d4af37             // Toque dorado
+);
+
+$dark-colors: (
+  primary: #ffffff,           // Texto/elementos destacados en blanco
+  secondary: #d4af37,         // Acento dorado
+  secondary-hover: #c99a30,   // Hover con variación del acento
+  background: #121212,        // Fondo casi negro
+  text: #f0f0f0,              // Texto claro
+  accent: #d4af37             // Toque dorado
+);
+
+@mixin theme($colors) {
+  --primary-color: #{map-get($colors, primary)};
+  --secondary-color: #{map-get($colors, secondary)};
+  --secondary-hover-color: #{map-get($colors, secondary-hover)};
+  --background-color: #{map-get($colors, background)};
+  --text-color: #{map-get($colors, text)};
+  --accent-color: #{map-get($colors, accent)};
+}

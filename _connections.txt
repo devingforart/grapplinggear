@@ -1,0 +1,780 @@
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/App.tsx
+
+Contenido:
+// src/App.tsx
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Home from './pages/Home';
+import Products from './pages/Products';
+import ProductDetail from './pages/ProductDetail';
+import Cart from './components/Cart';
+import Marketing from './pages/Marketing';
+import ThemeToggle from './components/ThemeToggle';
+import Header from './components/Header'; // Se importa el Header para el navbar persistente
+
+const App: React.FC = () => {
+  return (
+    <BrowserRouter>
+      {/* Navbar siempre visible */}
+      <Header />
+      {/* Botón para cambiar el tema */}
+      <ThemeToggle />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/productos" element={<Products />} />
+        <Route path="/producto/:id" element={<ProductDetail />} />
+        <Route path="/carrito" element={<Cart />} />
+        <Route path="/marketing" element={<Marketing />} />
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
+export default App;
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/main.tsx
+
+Contenido:
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import './scss/main.scss';
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/pages/Home.tsx
+
+Contenido:
+// src/pages/Home.tsx
+import React from 'react';
+import Header from '../components/Header';
+import Hero from '../components/Hero';
+import ProductGrid from '../components/ProductGrid';
+import Footer from '../components/Footer';
+
+const Home: React.FC = () => {
+  return (
+    <div className="home">
+      <Header />
+      <Hero />
+      <ProductGrid />
+      <Footer />
+    </div>
+  );
+};
+
+export default Home;
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/pages/Marketing.tsx
+
+Contenido:
+// src/pages/Marketing.tsx
+import React from 'react';
+
+const Marketing: React.FC = () => {
+  return (
+    <div className="marketing">
+      <h2>Marketing Grappling Gear</h2>
+      <p>
+        En Grappling Gear, ofrecemos la mejor ropa para artes marciales,
+        diseñada especialmente para jiu jitsu.
+        Nuestra misión es proveer equipamiento de alta calidad
+        que te permita rendir al máximo en tus entrenamientos y competencias.
+      </p>
+      <p>
+        Con materiales de última tecnología y un diseño innovador,
+        nuestros productos combinan estilo y rendimiento.
+        Únete a la comunidad de grapplers que confían en Grappling Gear
+        para destacar en cada combate.
+      </p>
+    </div>
+  );
+};
+
+export default Marketing;
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/pages/Products.tsx
+
+Contenido:
+// src/pages/Products.tsx
+import React from 'react';
+import ProductList from '../components/ProductList';
+
+const Products: React.FC = () => {
+  return (
+    <div className="products">
+      <h2>Productos</h2>
+      <ProductList />
+    </div>
+  );
+};
+
+export default Products;
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/pages/ProductDetail.tsx
+
+Contenido:
+// src/pages/ProductDetail.tsx
+import React from 'react';
+import { useParams } from 'react-router-dom';
+import { Product } from '../types/product';
+import productsData from '../components/products.json';
+
+
+
+const ProductDetail: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const products: Product[] = productsData.products;
+
+  return (
+    <div className="product-detail">
+      {/* Muestra la primera imagen como principal */}
+      <img src={product.images[0]} alt={product.name} />
+      
+      {/* Si existen varias imágenes, se muestra una galería */}
+      {product.images.length > 1 && (
+        <div className="product-gallery">
+          {product.images.map((img, idx) => (
+            <img key={idx} src={img} alt={`${product.name} ${idx + 1}`} />
+          ))}
+        </div>
+      )}
+      
+      <h2>{product.name}</h2>
+      <p>{product.description}</p>
+      <p>${product.price}</p>
+      <button>Añadir al Carrito</button>
+    </div>
+  );
+};
+
+export default ProductDetail;
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/ProductList.tsx
+
+Contenido:
+// src/components/ProductList.tsx
+import React from 'react';
+import ProductCard from './ProductCard';
+import { Product } from '../types/product';
+import productsData from './products.json';
+
+const ProductList: React.FC = () => {
+  // Si el JSON tiene la estructura { products: [...] }
+  const products: Product[] = productsData.products;
+  console.log(products)
+
+  return (
+    <div className="product-list">
+      {products.map(product => (
+        <ProductCard key={product.id} product={product} />
+      ))}
+    </div>
+  );
+};
+
+export default ProductList;
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/ThemeToggle.tsx
+
+Contenido:
+// src/components/ThemeToggle.tsx
+import React, { useEffect, useState } from 'react';
+import '../scss/components/_themeToggle.scss'; // Importa los estilos de SCSS
+
+const ThemeToggle: React.FC = () => {
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    console.log('darkMode:', darkMode);
+    const root = document.documentElement;
+    if (darkMode) {
+      root.classList.add('theme-dark');
+    } else {
+      root.classList.remove('theme-dark');
+    }
+  }, [darkMode]);
+  
+  return (
+    <button
+      className="theme-toggle"
+      onClick={() => setDarkMode(!darkMode)}
+    >
+      {/* Puedes usar emojis, íconos, o texto */}
+      {darkMode ? '☀️' : '🌙'}
+    </button>
+  );
+};
+
+export default ThemeToggle;
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/Cart.tsx
+
+Contenido:
+import React from 'react';
+
+const Cart: React.FC = () => {
+  // Aquí se gestionaría el estado del carrito. Por ahora, mostramos un mensaje de ejemplo.
+  return (
+    <div className="cart">
+      <h2>Carrito de Compras</h2>
+      <p>No hay productos en el carrito.</p>
+    </div>
+  );
+};
+
+export default Cart;
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/Header.tsx
+
+Contenido:
+// src/components/Header.tsx
+import React from 'react';
+import { Link } from 'react-router-dom';
+import '../scss/components/_header.scss';
+
+const Header: React.FC = () => {
+  return (
+    <header className="header">
+      <div className="header__logo">
+        <Link to="/">Grappling Gear</Link>
+      </div>
+      <nav className="header__nav">
+        <Link to="/productos">Productos</Link>
+        <Link to="/marketing">Marketing</Link>
+        <Link to="/carrito">Carrito</Link>
+      </nav>
+    </header>
+  );
+};
+
+export default Header;
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/Footer.tsx
+
+Contenido:
+// Footer.tsx
+import React from 'react';
+import '../scss/components/_footer.scss';
+
+const Footer: React.FC = () => {
+  return (
+    <footer className="footer">
+      <p>© {new Date().getFullYear()} Grappling Gear. Todos los derechos reservados.</p>
+    </footer>
+  );
+};
+
+export default Footer;
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/ProductCard.tsx
+
+Contenido:
+// src/components/ProductCard.tsx
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Product } from '../types/product';
+
+interface ProductCardProps {
+  product: Product;
+}
+
+const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+  return (
+    <div className="product-card">
+      <div className="product-card__image">
+        <img src={product.images[0]} alt={product.name} />
+      </div>
+      <div className="product-card__content">
+        <h3>{product.name}</h3>
+        <p>{product.description}</p>
+        <p>${product.price}</p>
+        <Link to={`/producto/${product.id}`}>Ver Detalle</Link>
+      </div>
+    </div>
+  );
+};
+
+export default ProductCard;
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/Hero.tsx
+
+Contenido:
+// Hero.tsx
+import React from 'react';
+import '../scss/components/_hero.scss';
+
+const Hero: React.FC = () => {
+  return (
+    <section className="hero">
+      <div className="hero__banner">
+ 
+        <div className="hero__content">
+{/*           <h1>Grappling Gear</h1>
+ */}          <a href="/productos" className="btn">Explora la colección</a>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default Hero;
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/ProductGrid.tsx
+
+Contenido:
+// src/components/ProductGrid.tsx
+import React from 'react';
+import ProductCard from './ProductCard';
+import '../scss/components/_product.scss';
+import productsData from './products.json';
+import { Product } from '../types/product';
+
+
+
+const ProductGrid: React.FC = () => {
+
+  const products: Product[] = productsData.products;
+
+  return (
+    <section className="product-grid">
+      <h2>Nuestra Colección</h2>
+      <div className="product-grid__list">
+        {products.map(product => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </div>
+    </section>
+  );
+};
+
+export default ProductGrid;
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/_variables.scss
+
+Contenido:
+// src/scss/_variables.scss
+$light-colors: (
+  primary: #000000,           // Texto/elementos destacados en negro
+  secondary: #333333,         // Detalles secundarios
+  secondary-hover: #555555,   // Hover sutil
+  background: #ffffff,        // Fondo blanco
+  text: #222222,              // Texto oscuro
+  accent: #d4af37             // Toque dorado
+);
+
+$dark-colors: (
+  primary: #ffffff,           // Texto/elementos destacados en blanco
+  secondary: #d4af37,         // Acento dorado
+  secondary-hover: #c99a30,   // Hover con variación del acento
+  background: #121212,        // Fondo casi negro
+  text: #f0f0f0,              // Texto claro
+  accent: #d4af37             // Toque dorado
+);
+
+@mixin theme($colors) {
+  --primary-color: #{map-get($colors, primary)};
+  --secondary-color: #{map-get($colors, secondary)};
+  --secondary-hover-color: #{map-get($colors, secondary-hover)};
+  --background-color: #{map-get($colors, background)};
+  --text-color: #{map-get($colors, text)};
+  --accent-color: #{map-get($colors, accent)};
+}
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/_mixins.scss
+
+Contenido:
+// src/scss/_mixins.scss
+@mixin flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/main.scss
+
+Contenido:
+@use './variables' as *;
+@use './base' as *;
+@use './components/_header' as *;
+@use './components/_hero' as *;
+@use './components/_product' as *;
+@use './components/_footer' as *;
+@use './mixins' as *;
+@use './themes' as *; // <-- que esté al final
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/_themes.scss
+
+Contenido:
+// src/scss/_themes.scss
+@use './variables' as vars;
+
+html {
+  @include vars.theme(vars.$light-colors);
+}
+
+html.theme-dark {
+  @include vars.theme(vars.$dark-colors);
+}
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/_base.scss
+
+Contenido:
+// src/scss/_base.scss
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+a:hover {
+  color: var(--accent-color);
+}
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_header.scss
+
+Contenido:
+// src/scss/components/_header.scss
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--background-color);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  border-bottom: 1px solid var(--secondary-hover-color);
+
+  &__logo a {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    letter-spacing: 1px;
+  }
+
+  &__nav {
+    display: flex;
+    gap: 2rem;
+    a {
+      font-size: 1rem;
+      font-weight: 500;
+      position: relative;
+      padding: 0.5rem 0;
+
+      &:after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 0;
+        height: 2px;
+        background: var(--accent-color);
+        transition: width 0.3s;
+      }
+      
+      &:hover:after {
+        width: 100%;
+      }
+    }
+  }
+}
+
+/* Responsive: en móvil se puede sustituir por un menú hamburguesa */
+@media (max-width: 768px) {
+  .header {
+    padding: 0.75rem 1.5rem;
+    &__nav {
+      display: none;
+    }
+  }
+}
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_hero.scss
+
+Contenido:
+/* src/scss/components/_hero.scss */
+.hero {
+  position: relative;
+  width: 100%;
+  height: 80vh; // Ajusta la altura del banner según prefieras
+
+  /* Posiciona la imagen de fondo de modo que la parte superior se vea */
+  background: url('public/pictures/MV12-2111233.jpg') center 20% / 100% auto no-repeat;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--background-color);
+
+  /* Overlay opcional para oscurecer la imagen y mejorar la legibilidad */
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0; /* top, right, bottom, left = 0 */
+    background: rgba(235, 221, 221, 0.4);
+    z-index: 1;
+  }
+
+  .hero__banner {
+    position: relative; /* Contenedor relativo para el posicionamiento del contenido */
+    width: 100%;
+    height: 100%;
+  }
+
+  .hero__content {
+    position: absolute;
+    bottom: 2rem; /* Ubica el botón en la parte inferior del banner */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    text-align: center;
+
+    .btn {
+      display: inline-block;
+      padding: 1rem 2rem;
+      background-color: var(--primary-color);
+      color: var(--background-color);
+      border: 2px solid var(--primary-color);
+      border-radius: 50px;
+      text-transform: uppercase;
+      font-weight: 600;
+      transition: background-color 0.3s, color 0.3s;
+
+      &:hover {
+        background-color: var(--accent-color);
+        border-color: var(--accent-color);
+        color: var(--background-color);
+      }
+    }
+  }
+}
+
+/* Ajustes responsive para pantallas pequeñas */
+@media (max-width: 768px) {
+  .hero {
+    height: 60vh; // Menor altura en dispositivos móviles
+  }
+  
+  .hero__content {
+    bottom: 1rem;
+    
+    .btn {
+      padding: 0.75rem 1.5rem;
+    }
+  }
+}
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_footer.scss
+
+Contenido:
+// src/scss/components/_footer.scss
+.footer {
+  background-color: var(--primary-color);
+  color: var(--background-color);
+  text-align: center;
+  padding: 1.5rem;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+  border-top: 1px solid var(--secondary-hover-color);
+}
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_product.scss
+
+Contenido:
+.product-card {
+  background-color: var(--background-color);
+  border: 1px solid var(--primary-color);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s;
+  display: flex;
+  flex-direction: column;
+
+  &:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  }
+
+  &__image {
+    width: 100%;
+    height: 200px; // Altura fija para todas las imágenes
+    overflow: hidden;
+  }
+
+  &__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; // Se asegura de que la imagen se recorte y ajuste
+  }
+
+  &__content {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+
+    h3 {
+      margin: 0;
+      font-size: 1.2rem;
+      color: var(--primary-color);
+    }
+
+    p {
+      margin: 0.5rem 0;
+      font-size: 0.9rem;
+      color: var(--text-color);
+      flex-grow: 1;
+    }
+
+    a {
+      align-self: start;
+      padding: 0.75rem;
+      background-color: var(--secondary-color);
+      color: var(--background-color);
+      text-transform: uppercase;
+      font-weight: 600;
+      border-radius: 50px;
+      transition: background-color 0.3s;
+      text-decoration: none;
+      margin-top: auto;
+
+      &:hover {
+        background-color: var(--secondary-hover-color);
+      }
+    }
+  }
+}
+.product-detail img {
+  width: 100%;
+  max-height: 400px;
+  object-fit: cover;
+}
+
+.product-gallery img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  margin-right: 0.5rem;
+}
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_themeToggle.scss
+
+Contenido:
+// src/scss/components/_themeToggle.scss
+.theme-toggle {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 3.5rem;
+  height: 3.5rem;
+  border: none;
+  border-radius: 50%;
+  background-color: var(--accent-color);
+  color: var(--background-color);
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+  transition: transform 0.2s, background-color 0.3s;
+  
+  &:hover {
+    transform: scale(1.1);
+    background-color: var(--secondary-color);
+  }
+}
+
+
+--------------------------------------------------------------------------------
+

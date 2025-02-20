@@ -1,0 +1,34 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "Gi Tradicional",
+      "description": "Gi de alta calidad para jiu jitsu.",
+      "price": 100,
+      "images": [
+        "/pictures/ArtBoard/Artboard1Blackfront.webp",
+        "/pictures/ArtBoard/Artboard1BlackSide.webp"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "No Gi Rashguard",
+      "description": "Rashguard resistente y cómodo, disponible en varios diseños.",
+      "price": 60,
+      "images": [
+        "/pictures/ArtBoard/Artboard1Blackfront.webp",
+        "/pictures/ArtBoard/Artboard1BlackSide.webp"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Shorts de Combate",
+      "description": "Shorts ideales para combates y entrenamientos de grappling.",
+      "price": 40,
+      "images": [
+        "/pictures/ArtBoard/Artboard1Blackfront.webp",
+        "/pictures/ArtBoard/Artboard1BlackSide.webp"
+      ]
+    }
+  ]
+}
