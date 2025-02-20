@@ -180,7 +180,6 @@ const ProductDetail: React.FC = () => {
       return;
     }
     addToCart({ product, quantity: 1, size: selectedSize });
-    showNotification(`Se agregó 1 unidad de ${product.name} (talle ${selectedSize}) al carrito.`, "success");
   };
 
   return (
@@ -866,24 +865,13 @@ Contenido:
 // src/components/Hero.tsx
 import React from 'react';
 import '../scss/components/_hero.scss';
-import { useNotification } from '../context/NotificationContext';
 
 const Hero: React.FC = () => {
-  const { showNotification } = useNotification();
-
-  const handleTestNotification = () => {
-    showNotification('¡Esta es una notificación de prueba!', 'info');
-  };
-
   return (
     <section className="hero">
       <div className="hero__banner">
         <div className="hero__content">
           <a href="/productos" className="btn">Explora la colección</a>
-          {/* Botón de prueba para ver las notificaciones */}
-          <button className="btn" onClick={handleTestNotification} style={{ marginTop: '1rem' }}>
-            Test Notificación
-          </button>
         </div>
       </div>
     </section>
