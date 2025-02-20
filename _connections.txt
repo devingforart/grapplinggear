@@ -1323,13 +1323,13 @@ export default Checkout;
 
 Contenido:
 // src/context/CartContext.tsx
-import React, { createContext, useState, ReactNode } from 'react';
+import { createContext, useState, ReactNode } from 'react';
 import { Product } from '../types/product';
 
 export interface CartItem {
   product: Product;
   quantity: number;
-  size: string; // Nuevo campo para el talle seleccionado
+  size: string;
 }
 
 interface CartContextType {
@@ -1354,7 +1354,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const addToCart = (item: CartItem) => {
     setCartItems(prevItems => {
       // Se busca si ya existe el mismo producto con el mismo talle
-      const index = prevItems.findIndex(ci => ci.product.id === item.product.id && ci.size === item.size);
+      const index = prevItems.findIndex(
+        ci => ci.product.id === item.product.id && ci.size === item.size
+      );
       if (index !== -1) {
         const newItems = [...prevItems];
         newItems[index].quantity += item.quantity;
@@ -1386,9 +1388,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <CartContext.Provider
-      value={{ cartItems, addToCart, removeFromCart, updateCartItem, clearCart }}
-    >
+    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateCartItem, clearCart }}>
       {children}
     </CartContext.Provider>
   );
@@ -1401,7 +1401,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
 Contenido:
 // src/context/NotificationContext.tsx
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 export type NotificationType = 'success' | 'error' | 'info';
@@ -1429,13 +1429,13 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 
   const showNotification = (message: string, type: NotificationType = 'info') => {
     const id = uuidv4();
-    setNotifications((prev) => [...prev, { id, message, type }]);
-    // Se elimina la notificación después de 3 segundos
+    setNotifications(prev => [...prev, { id, message, type }]);
+    // Elimina la notificación después de 3 segundos
     setTimeout(() => removeNotification(id), 3000);
   };
 
   const removeNotification = (id: string) => {
-    setNotifications((prev) => prev.filter((notif) => notif.id !== id));
+    setNotifications(prev => prev.filter(notif => notif.id !== id));
   };
 
   return (
@@ -1454,13 +1454,11 @@ export const useNotification = () => useContext(NotificationContext);
 
 Contenido:
 // src/context/InventoryContext.tsx
-import React, { createContext, useState, ReactNode } from 'react';
+import { createContext, useState, ReactNode } from 'react';
 import productsData from '../components/products.json';
 
 interface Inventory {
-  [productId: number]: {
-    [size: string]: number;
-  }
+  [productId: number]: Partial<Record<string, number>>;
 }
 
 interface InventoryContextType {
@@ -1493,7 +1491,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
         ...prev,
         [productId]: {
           ...prev[productId],
-          [size]: prev[productId][size] - quantity,
+          [size]: (prev[productId][size] || 0) - quantity,
         },
       }));
       return true;
