@@ -121,12 +121,11 @@
   @media (max-width: 768px) {
     // Para mobile, sobreescribimos el overlay con un degradado más oscuro
     &__overlay {
-      background: linear-gradient(180deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5));
+      background: linear-gradient(180deg, var(--hero-overlay), var(--background-color));
     }
     
     // Agregamos un fondo semi-transparente al contenedor para mejorar la legibilidad
     &__container {
-      background: rgba(0, 0, 0, 0.4);
       padding: 1rem;
       border-radius: 8px;
     }

@@ -1,6 +1,5 @@
 .product-grid-creative {
     padding: 4rem 2rem;
-    background: #f9f9f9;
     opacity: 0;
     transform: translateY(50px);
     transition: all 0.8s ease-out;
@@ -16,14 +15,14 @@
     
       h2,
       p {
-        color: #000; // Por defecto, para tema claro: texto negro
+        color: var(--primary-color);
       }
     }
     
     html.theme-dark .collection-intro {
       h2,
       p {
-        color: #fff; // En tema oscuro: texto blanco
+        color: var(--primary-color);
       }
     }
       

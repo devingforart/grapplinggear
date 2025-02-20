@@ -9,7 +9,7 @@ import ProductsAdvanced from './pages/ProductsAdvanced';
 import ProductDetail from './pages/ProductDetail';
 import Cart from './components/Cart';
 import Checkout from './components/Checkout';
-import Marketing from './pages/Marketing';
+import Contactanos from './pages/Contactanos'; // Importa el nuevo componente
 import ThemeToggle from './components/ThemeToggle';
 import Header from './components/Header';
 import NotificationContainer from './components/NotificationContainer';
@@ -21,17 +21,15 @@ const App: React.FC = () => {
       <ThemeToggle />
       <NotificationContainer />
       <div className="main-content">
-
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/productos" element={<ProductsAdvanced />} />
-        <Route path="/producto/:id" element={<ProductDetail />} />
-        <Route path="/carrito" element={<Cart />} />
-        <Route path="/checkout" element={<Checkout />} />
-        <Route path="/marketing" element={<Marketing />} />
-      </Routes>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/productos" element={<ProductsAdvanced />} />
+          <Route path="/producto/:id" element={<ProductDetail />} />
+          <Route path="/carrito" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/contactanos" element={<Contactanos />} />
+        </Routes>
       </div>
-
     </BrowserRouter>
   );
 };
@@ -76,7 +74,6 @@ import React, { useState } from 'react';
 import ProductCard from '../components/ProductCard';
 import { Product } from '../types/product';
 import productsData from '../components/products.json';
-import CategoryFilter from '../components/CategoryFilter';
 
 const ProductsAdvanced: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -181,37 +178,6 @@ export default Home;
 
 --------------------------------------------------------------------------------
 
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/pages/Marketing.tsx
-
-Contenido:
-// src/pages/Marketing.tsx
-import React from 'react';
-
-const Marketing: React.FC = () => {
-  return (
-    <div className="marketing">
-      <h2>Marketing Grappling Gear</h2>
-      <p>
-        En Grappling Gear, ofrecemos la mejor ropa para artes marciales,
-        diseñada especialmente para jiu jitsu.
-        Nuestra misión es proveer equipamiento de alta calidad
-        que te permita rendir al máximo en tus entrenamientos y competencias.
-      </p>
-      <p>
-        Con materiales de última tecnología y un diseño innovador,
-        nuestros productos combinan estilo y rendimiento.
-        Únete a la comunidad de grapplers que confían en Grappling Gear
-        para destacar en cada combate.
-      </p>
-    </div>
-  );
-};
-
-export default Marketing;
-
-
---------------------------------------------------------------------------------
-
 /home/southatoms/Escritorio/develop/personal/grappling-gear/src/pages/Products.tsx
 
 Contenido:
@@ -229,6 +195,133 @@ const Products: React.FC = () => {
 };
 
 export default Products;
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/pages/Contactanos.tsx
+
+Contenido:
+// src/pages/Contactanos.tsx
+import React, { useState } from 'react';
+import '../scss/components/_contactanos.scss'; // Asegúrate de tener los estilos correspondientes
+
+const Contactanos: React.FC = () => {
+  const [formData, setFormData] = useState({
+    nombre: '',
+    email: '',
+    telefono: '',
+    asunto: '',
+    mensaje: '',
+  });
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Validación básica: asegúrate de que los campos obligatorios estén completos
+    if (!formData.nombre || !formData.email || !formData.mensaje) {
+      alert("Por favor, completa los campos obligatorios.");
+      return;
+    }
+    // Aquí implementarías la lógica para enviar el mensaje a tu backend o servicio de correo
+    console.log("Mensaje enviado:", formData);
+    alert("Tu mensaje ha sido enviado. Nos pondremos en contacto contigo a la brevedad.");
+    setFormData({
+      nombre: '',
+      email: '',
+      telefono: '',
+      asunto: '',
+      mensaje: '',
+    });
+  };
+
+  return (
+    <div className="contactanos">
+      <h2>Contáctanos</h2>
+      <p>
+        ¿Tienes alguna consulta o necesitas más información? Completa el siguiente formulario y nos pondremos en contacto contigo.
+      </p>
+      <form className="contactanos__form" onSubmit={handleSubmit}>
+        <div className="contactanos__form-group">
+          <label htmlFor="nombre">Nombre Completo *</label>
+          <input
+            type="text"
+            id="nombre"
+            name="nombre"
+            value={formData.nombre}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="contactanos__form-group">
+          <label htmlFor="email">Correo Electrónico *</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="contactanos__form-group">
+          <label htmlFor="telefono">Teléfono</label>
+          <input
+            type="tel"
+            id="telefono"
+            name="telefono"
+            value={formData.telefono}
+            onChange={handleChange}
+          />
+        </div>
+        <div className="contactanos__form-group">
+          <label htmlFor="asunto">Asunto</label>
+          <input
+            type="text"
+            id="asunto"
+            name="asunto"
+            value={formData.asunto}
+            onChange={handleChange}
+          />
+        </div>
+        <div className="contactanos__form-group">
+          <label htmlFor="mensaje">Mensaje *</label>
+          <textarea
+            id="mensaje"
+            name="mensaje"
+            rows={5}
+            value={formData.mensaje}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <button type="submit" className="btn contactanos__submit">
+          Enviar Mensaje
+        </button>
+      </form>
+      <div className="contactanos__info">
+        <h3>Información de Contacto</h3>
+        <p>
+          <strong>Teléfono:</strong> (123) 456-7890
+        </p>
+        <p>
+          <strong>Email:</strong> info@grapplinggear.com
+        </p>
+        <p>
+          <strong>Dirección:</strong> Calle Falsa 123, Ciudad, País
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default Contactanos;
 
 
 --------------------------------------------------------------------------------
@@ -999,7 +1092,7 @@ const Header: React.FC = () => {
       {/* Menú para pantallas de escritorio */}
       <nav className="header__nav desktop">
         <Link to="/productos">Productos</Link>
-        <Link to="/marketing">Marketing</Link>
+        <Link to="/contactanos">Contáctanos</Link>
         <Link to="/carrito" className="header__cart">
           Carrito
           {totalItems > 0 && (
@@ -1037,7 +1130,7 @@ const Header: React.FC = () => {
             </button>
             <nav className="mobile-menu__nav">
               <Link to="/productos" onClick={toggleMobileMenu}>Productos</Link>
-              <Link to="/marketing" onClick={toggleMobileMenu}>Marketing</Link>
+              <Link to="/contactanos" onClick={toggleMobileMenu}>Contáctanos</Link>
               <Link to="/carrito" onClick={toggleMobileMenu} className="mobile-cart">
                 Carrito
                 {totalItems > 0 && (
@@ -1131,7 +1224,7 @@ const Hero: React.FC = () => {
       
       <div className="hero__container">
         <div className="hero__content">
-          <h1>Descubre la Innovación en Grappling</h1>
+          <h1>Innovación en Grappling</h1>
           <p>Equipamiento de alta calidad para el guerrero moderno</p>
           <a href="#nuestra-coleccion" className="hero__cta">
             Explora la colección
@@ -1140,7 +1233,6 @@ const Hero: React.FC = () => {
       </div>
       
       <div className="hero__scroll">
-        <span className="hero__scroll-text">Desliza hacia abajo</span>
         <svg className="hero__scroll-arrow" viewBox="0 0 24 24">
           <path d="M12 16l-6-6h12z" />
         </svg>
@@ -1587,6 +1679,7 @@ Contenido:
 @use './components/_productList' as *;
 @use './components/productAdvanced' as *;
 @use './components/_productGrid' as *;
+@use './components/_contactanos' as *;
 
 
 
@@ -1652,6 +1745,90 @@ a:hover {
   color: var(--accent-color);
 }
 
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_contactanos.scss
+
+Contenido:
+/* src/scss/components/_contactanos.scss */
+.contactanos {
+    padding: 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+  
+    h2 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: var(--primary-color);
+    }
+  
+    p {
+      margin-bottom: 2rem;
+      color: var(--text-color);
+    }
+  
+    &__form {
+      display: grid;
+      grid-gap: 1rem;
+      text-align: left;
+      margin-bottom: 2rem;
+  
+      &-group {
+        display: flex;
+        flex-direction: column;
+  
+        label {
+          margin-bottom: 0.5rem;
+          font-weight: bold;
+          color: var(--primary-color);
+        }
+  
+        input,
+        textarea {
+          padding: 0.75rem;
+          border: 1px solid var(--secondary-hover-color);
+          border-radius: 4px;
+          font-size: 1rem;
+          color: var(--text-color);
+          background-color: var(--background-color);
+        }
+      }
+    }
+  
+    &__submit {
+      background-color: var(--secondary-color);
+      color: var(--background-color);
+      border: none;
+      border-radius: 50px;
+      padding: 0.75rem 2rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s;
+  
+      &:hover {
+        background-color: var(--secondary-hover-color);
+      }
+    }
+  
+    &__info {
+      text-align: left;
+      margin-top: 2rem;
+      color: var(--text-color);
+  
+      h3 {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+        color: var(--primary-color);
+      }
+  
+      p {
+        margin-bottom: 0.5rem;
+      }
+    }
+  }
+  
 
 --------------------------------------------------------------------------------
 
@@ -2066,7 +2243,6 @@ Contenido:
 /home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_hero.scss
 
 Contenido:
-// src/scss/components/_hero.scss
 .hero {
   position: relative;
   width: 100%;
@@ -2076,7 +2252,7 @@ Contenido:
   align-items: center;
   justify-content: center;
 
-  // Imagen de fondo con efecto parallax en desktop y animación de zoom sutil
+  // Imagen de fondo con efecto parallax y animación de zoom sutil
   &__background {
     top: 0;
     left: 0;
@@ -2095,7 +2271,7 @@ Contenido:
     width: 100%;
     height: 100%;
     z-index: 2;
-    // Se utiliza la variable definida según el theme
+    // Se usa la variable definida según el theme, pero en mobile se sobreescribirá
     background: var(--hero-overlay, rgba(0, 0, 0, 0.5));
   }
 
@@ -2111,7 +2287,6 @@ Contenido:
 
   // Estilos para el contenido textual
   &__content {
-    // Usamos la variable de color de texto para que sea legible en ambos temas
     color: var(--text-color, #fff);
     
     h1 {
@@ -2127,25 +2302,23 @@ Contenido:
     }
   }
 
-  // Botón de llamada a la acción con micro-interacciones
+  // Botón de llamada a la acción con nuevo estilo para mejor contraste
   &__cta {
     display: inline-block;
     padding: 0.75rem 2rem;
     font-size: 1rem;
     font-weight: bold;
-    // En este caso usamos el color de fondo (que en cada tema contrasta con el texto)
-    color: var(--background-color, #fff);
-    background: transparent;
-    border: 2px solid var(--background-color, #fff);
+    background: var(--accent-color);         // Fondo con el color de acento
+    color: var(--background-color);           // Texto usando el color de fondo (claro u oscuro)
+    border: none;
     border-radius: 50px;
     text-decoration: none;
-    transition: all 0.3s ease;
+    transition: background-color 0.3s ease, transform 0.3s ease;
     position: relative;
     overflow: hidden;
     
     &:hover {
-      background: var(--background-color, #fff);
-      color: var(--text-color, #000);
+      background: #c6962c;  // Un tono un poco más oscuro (puedes ajustar este valor)
       transform: translateY(-3px);
     }
   }
@@ -2189,10 +2362,18 @@ Contenido:
     100% { transform: scale(1); }
   }
 
-  // Ajustes responsive: en dispositivos móviles se mantienen las mismas posiciones
+  // Ajustes para dispositivos móviles
   @media (max-width: 768px) {
-    &__background {
-      position: absolute;
+    // Para mobile, sobreescribimos el overlay con un degradado más oscuro
+    &__overlay {
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5));
+    }
+    
+    // Agregamos un fondo semi-transparente al contenedor para mejorar la legibilidad
+    &__container {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 1rem;
+      border-radius: 8px;
     }
     
     &__content {
@@ -2651,19 +2832,20 @@ Contenido:
     .collection-intro {
       text-align: center;
       margin-bottom: 2rem;
-  
-      h2 {
-        font-size: 2.5rem;
-        margin-bottom: 0.5rem;
-        color: var(--primary-color);
-      }
-  
+    
+      h2,
       p {
-        font-size: 1.2rem;
-        color: var(--text-color);
+        color: #000; // Por defecto, para tema claro: texto negro
       }
     }
-  
+    
+    html.theme-dark .collection-intro {
+      h2,
+      p {
+        color: #fff; // En tema oscuro: texto blanco
+      }
+    }
+      
     &__list {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
