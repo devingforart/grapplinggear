@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+// src/pages/ProductDetail.tsx
+import React, { useState, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import { Product } from '../types/product';
 import productsData from '../components/products.json';
 import FullZoomImage from '../components/FullZoomImage';
+import { CartContext } from '../context/CartContext';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const products: Product[] = productsData.products;
   const product = products.find(item => item.id.toString() === id);
+  const { addToCart } = useContext(CartContext);
 
   // Controla la imagen seleccionada de la galería
   const [selectedImage, setSelectedImage] = useState(product?.images[0] || '');
@@ -51,7 +54,12 @@ const ProductDetail: React.FC = () => {
             </div>
           </div>
 
-          <button className="btn product-detail__add-to-cart">Añadir al Carrito</button>
+          <button 
+            className="btn product-detail__add-to-cart"
+            onClick={() => addToCart({ product, quantity: 1 })}
+          >
+            Añadir al Carrito
+          </button>
         </div>
       </div>
       {/* Galería de miniaturas */}
