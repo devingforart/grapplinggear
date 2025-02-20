@@ -1,4 +1,3 @@
-// src/pages/ProductDetail.tsx
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Product } from '../types/product';
@@ -14,13 +13,13 @@ const ProductDetail: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState(product?.images[0] || '');
 
   if (!product) {
-    return <div>Producto no encontrado</div>;
+    return <div className="product-detail__notfound">Producto no encontrado</div>;
   }
 
   return (
     <div className="product-detail">
       <div className="product-detail__container">
-        {/* Vista del producto con FullZoomImage */}
+        {/* Vista del producto */}
         <div className="product-detail__viewer">
           <FullZoomImage
             src={selectedImage}
@@ -31,27 +30,28 @@ const ProductDetail: React.FC = () => {
         </div>
         {/* Información del producto */}
         <div className="product-detail__info">
-          <h2>{product.name}</h2>
-          <p>{product.description}</p>
-          <p className="price">${product.price}</p>
+          <h2 className="product-detail__title">{product.name}</h2>
+          <p className="product-detail__description">{product.description}</p>
+          <p className="product-detail__price">${product.price}</p>
 
-          {/* Sección de talles disponibles y stock */}
+          {/* Sección de talles y stock */}
           <div className="product-detail__extra">
             <div className="product-detail__sizes">
-              <h3>Talles Disponibles</h3>
-              <ul>
-                {product.availableSizes && product.availableSizes.map((size, index) => (
-                  <li key={index}>{size}</li>
-                ))}
+              <h3 className="product-detail__subtitle">Talles Disponibles</h3>
+              <ul className="product-detail__size-list">
+                {product.availableSizes &&
+                  product.availableSizes.map((size, index) => (
+                    <li key={index} className="product-detail__size-item">{size}</li>
+                  ))}
               </ul>
             </div>
             <div className="product-detail__stock">
-              <h3>Stock</h3>
-              <p>{product.stock} unidades disponibles</p>
+              <h3 className="product-detail__subtitle">Stock</h3>
+              <p className="product-detail__stock-info">{product.stock} unidades disponibles</p>
             </div>
           </div>
 
-          <button className="btn add-to-cart">Añadir al Carrito</button>
+          <button className="btn product-detail__add-to-cart">Añadir al Carrito</button>
         </div>
       </div>
       {/* Galería de miniaturas */}
