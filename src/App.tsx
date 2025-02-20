@@ -6,7 +6,7 @@ import ProductsAdvanced from './pages/ProductsAdvanced';
 import ProductDetail from './pages/ProductDetail';
 import Cart from './components/Cart';
 import Checkout from './components/Checkout';
-import Marketing from './pages/Marketing';
+import Contactanos from './pages/Contactanos'; // Importa el nuevo componente
 import ThemeToggle from './components/ThemeToggle';
 import Header from './components/Header';
 import NotificationContainer from './components/NotificationContainer';
@@ -18,17 +18,15 @@ const App: React.FC = () => {
       <ThemeToggle />
       <NotificationContainer />
       <div className="main-content">
-
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/productos" element={<ProductsAdvanced />} />
-        <Route path="/producto/:id" element={<ProductDetail />} />
-        <Route path="/carrito" element={<Cart />} />
-        <Route path="/checkout" element={<Checkout />} />
-        <Route path="/marketing" element={<Marketing />} />
-      </Routes>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/productos" element={<ProductsAdvanced />} />
+          <Route path="/producto/:id" element={<ProductDetail />} />
+          <Route path="/carrito" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/contactanos" element={<Contactanos />} />
+        </Routes>
       </div>
-
     </BrowserRouter>
   );
 };

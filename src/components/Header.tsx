@@ -20,7 +20,7 @@ const Header: React.FC = () => {
       {/* Menú para pantallas de escritorio */}
       <nav className="header__nav desktop">
         <Link to="/productos">Productos</Link>
-        <Link to="/marketing">Marketing</Link>
+        <Link to="/contactanos">Contáctanos</Link>
         <Link to="/carrito" className="header__cart">
           Carrito
           {totalItems > 0 && (
@@ -58,7 +58,7 @@ const Header: React.FC = () => {
             </button>
             <nav className="mobile-menu__nav">
               <Link to="/productos" onClick={toggleMobileMenu}>Productos</Link>
-              <Link to="/marketing" onClick={toggleMobileMenu}>Marketing</Link>
+              <Link to="/contactanos" onClick={toggleMobileMenu}>Contáctanos</Link>
               <Link to="/carrito" onClick={toggleMobileMenu} className="mobile-cart">
                 Carrito
                 {totalItems > 0 && (
