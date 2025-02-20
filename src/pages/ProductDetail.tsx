@@ -1,16 +1,17 @@
 // src/pages/ProductDetail.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Product } from '../types/product';
 import productsData from '../components/products.json';
+import FullZoomImage from '../components/FullZoomImage';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  console.log('ID recibido:', id);
-  
   const products: Product[] = productsData.products;
-  // Convertimos el id del producto a string para comparar correctamente
-  const product = products.find((item) => item.id.toString() === id);
+  const product = products.find(item => item.id.toString() === id);
+
+  // Controla la imagen seleccionada de la galería
+  const [selectedImage, setSelectedImage] = useState(product?.images[0] || '');
 
   if (!product) {
     return <div>Producto no encontrado</div>;
@@ -18,22 +19,36 @@ const ProductDetail: React.FC = () => {
 
   return (
     <div className="product-detail">
-      {/* Muestra la primera imagen como principal */}
-      <img src={product.images[0]} alt={product.name} />
-      
-      {/* Si existen varias imágenes, se muestra una galería */}
-      {product.images.length > 1 && (
-        <div className="product-gallery">
-          {product.images.map((img, idx) => (
-            <img key={idx} src={img} alt={`${product.name} ${idx + 1}`} />
-          ))}
+      <div className="product-detail__container">
+        {/* Vista del producto con FullZoomImage */}
+        <div className="product-detail__viewer">
+          <FullZoomImage
+            src={selectedImage}
+            alt={product.name}
+            thumbnailWidth={500}  // Tamaño moderado del thumbnail
+            thumbnailHeight={400}
+          />
         </div>
-      )}
-      
-      <h2>{product.name}</h2>
-      <p>{product.description}</p>
-      <p>${product.price}</p>
-      <button>Añadir al Carrito</button>
+        {/* Información del producto */}
+        <div className="product-detail__info">
+          <h2>{product.name}</h2>
+          <p>{product.description}</p>
+          <p className="price">${product.price}</p>
+          <button className="btn add-to-cart">Añadir al Carrito</button>
+        </div>
+      </div>
+      {/* Galería de miniaturas */}
+      <div className="product-detail__gallery">
+        {product.images.map((img, index) => (
+          <img
+            key={index}
+            src={img}
+            alt={`${product.name} ${index + 1}`}
+            className={`product-detail__thumb ${selectedImage === img ? 'selected' : ''}`}
+            onClick={() => setSelectedImage(img)}
+          />
+        ))}
+      </div>
     </div>
   );
 };

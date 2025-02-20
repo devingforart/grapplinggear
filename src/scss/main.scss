@@ -3,6 +3,8 @@
 @use './components/_header' as *;
 @use './components/_hero' as *;
 @use './components/_product' as *;
+@use './components/_product_detaills' as *;
+
 @use './components/_footer' as *;
 @use './mixins' as *;
 @use './themes' as *; // <-- que esté al final

@@ -139,11 +139,17 @@ import { useParams } from 'react-router-dom';
 import { Product } from '../types/product';
 import productsData from '../components/products.json';
 
-
-
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  console.log('ID recibido:', id);
+  
   const products: Product[] = productsData.products;
+  // Convertimos el id del producto a string para comparar correctamente
+  const product = products.find((item) => item.id.toString() === id);
+
+  if (!product) {
+    return <div>Producto no encontrado</div>;
+  }
 
   return (
     <div className="product-detail">
