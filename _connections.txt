@@ -500,29 +500,26 @@ export default ThemeToggle;
 
 Contenido:
 // src/components/Cart.tsx
-import React from 'react';
+import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
+import { CartContext } from '../context/CartContext';
 
 const Cart: React.FC = () => {
-  // Datos de ejemplo (en una aplicación real estos datos vendrían de un estado global o API)
-  const cartItems = [
-    {
-      id: 1,
-      name: 'Gi Tradicional',
-      price: 100,
-      quantity: 1,
-      image: '/pictures/ArtBoard/Artboard1Blackfront.webp'
-    },
-    {
-      id: 2,
-      name: 'No Gi Rashguard',
-      price: 60,
-      quantity: 2,
-      image: '/pictures/ArtBoard/Artboard1WhitefrontWhite.webp'
-    }
-  ];
+  const { cartItems, removeFromCart, updateCartItem, clearCart } = useContext(CartContext);
 
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = cartItems.reduce(
+    (sum, item) => sum + item.product.price * item.quantity,
+    0
+  );
+
+  const handleQuantityChange = (productId: number, newQuantity: number) => {
+    // Si la cantidad es menor a 1 se elimina el producto del carrito
+    if (newQuantity < 1) {
+      removeFromCart(productId);
+    } else {
+      updateCartItem(productId, newQuantity);
+    }
+  };
 
   return (
     <div className="cart">
@@ -533,12 +530,39 @@ const Cart: React.FC = () => {
         <div className="cart__content">
           <div className="cart__items">
             {cartItems.map(item => (
-              <div className="cart__item" key={item.id}>
-                <img src={item.image} alt={item.name} className="cart__item-image" />
+              <div className="cart__item" key={item.product.id}>
+                <img
+                  src={item.product.images[0]}
+                  alt={item.product.name}
+                  className="cart__item-image"
+                />
                 <div className="cart__item-info">
-                  <h3>{item.name}</h3>
-                  <p>Precio: ${item.price}</p>
-                  <p>Cantidad: {item.quantity}</p>
+                  <h3>{item.product.name}</h3>
+                  <p>Precio: ${item.product.price}</p>
+                  <div>
+                    <label htmlFor={`quantity-${item.product.id}`}>
+                      Cantidad:
+                    </label>
+                    <input
+                      id={`quantity-${item.product.id}`}
+                      type="number"
+                      value={item.quantity}
+                      min="1"
+                      onChange={(e) =>
+                        handleQuantityChange(
+                          item.product.id,
+                          parseInt(e.target.value)
+                        )
+                      }
+                      style={{ width: '60px', marginRight: '1rem' }}
+                    />
+                    <button
+                      onClick={() => removeFromCart(item.product.id)}
+                      className="btn"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -546,7 +570,18 @@ const Cart: React.FC = () => {
           <div className="cart__summary">
             <h3>Resumen</h3>
             <p>Subtotal: ${subtotal}</p>
-            <Link to="/checkout" className="btn">Proceder al Checkout</Link>
+            <div style={{ marginBottom: '1rem' }}>
+              <button
+                onClick={clearCart}
+                className="btn"
+                style={{ backgroundColor: 'red', color: '#fff' }}
+              >
+                Vaciar Carrito
+              </button>
+            </div>
+            <Link to="/checkout" className="btn">
+              Proceder al Checkout
+            </Link>
           </div>
         </div>
       )}
@@ -945,6 +980,7 @@ export default Checkout;
 /home/southatoms/Escritorio/develop/personal/grappling-gear/src/context/CartContext.tsx
 
 Contenido:
+// src/context/CartContext.tsx
 import React, { createContext, useState, ReactNode } from 'react';
 import { Product } from '../types/product';
 
@@ -956,19 +992,23 @@ export interface CartItem {
 interface CartContextType {
   cartItems: CartItem[];
   addToCart: (item: CartItem) => void;
-  // Puedes agregar más métodos (remove, update, clear, etc.)
+  removeFromCart: (productId: number) => void;
+  updateCartItem: (productId: number, newQuantity: number) => void;
+  clearCart: () => void;
 }
 
 export const CartContext = createContext<CartContextType>({
   cartItems: [],
-  addToCart: () => {}
+  addToCart: () => {},
+  removeFromCart: () => {},
+  updateCartItem: () => {},
+  clearCart: () => {},
 });
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
   const addToCart = (item: CartItem) => {
-    // Lógica simple: si ya existe el producto, actualiza la cantidad, de lo contrario lo agrega.
     setCartItems(prevItems => {
       const index = prevItems.findIndex(ci => ci.product.id === item.product.id);
       if (index !== -1) {
@@ -980,8 +1020,31 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
+  const removeFromCart = (productId: number) => {
+    setCartItems(prevItems =>
+      prevItems.filter(item => item.product.id !== productId)
+    );
+  };
+
+  const updateCartItem = (productId: number, newQuantity: number) => {
+    setCartItems(prevItems =>
+      prevItems.map(item => {
+        if (item.product.id === productId) {
+          return { ...item, quantity: newQuantity };
+        }
+        return item;
+      })
+    );
+  };
+
+  const clearCart = () => {
+    setCartItems([]);
+  };
+
   return (
-    <CartContext.Provider value={{ cartItems, addToCart }}>
+    <CartContext.Provider
+      value={{ cartItems, addToCart, removeFromCart, updateCartItem, clearCart }}
+    >
       {children}
     </CartContext.Provider>
   );

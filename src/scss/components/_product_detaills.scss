@@ -132,3 +132,64 @@
     margin: 2rem 0;
   }
 }
+
+/* Ajustes para pantallas hasta 768px (tablets) */
+@media (max-width: 768px) {
+  .product-detail {
+    padding: 1rem;
+  }
+  .product-detail__container {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  .product-detail__viewer,
+  .product-detail__info {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+  .product-detail__title {
+    font-size: 1.5rem;
+  }
+  .product-detail__description {
+    font-size: 0.9rem;
+  }
+  .product-detail__price {
+    font-size: 1.2rem;
+  }
+  .product-detail__extra {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .product-detail__gallery {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .product-detail__thumb {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+/* Enfocándonos en móviles (hasta 480px) */
+@media (max-width: 480px) {
+  /* Asegura que el contenedor del viewer ocupe el ancho completo sin causar scroll */
+  .product-detail__viewer {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto;
+  }
+  
+  /* Forzar que el contenedor de FullZoomImage se ajuste al ancho del dispositivo */
+  .full-zoom-image-container {
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  /* Asegura que la imagen dentro de FullZoomImage se ajuste correctamente */
+  .full-zoom-image-container img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+  }
+}
