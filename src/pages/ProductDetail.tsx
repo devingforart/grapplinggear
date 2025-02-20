@@ -6,6 +6,7 @@ import productsData from '../components/products.json';
 import FullZoomImage from '../components/FullZoomImage';
 import { CartContext } from '../context/CartContext';
 import { InventoryContext } from '../context/InventoryContext';
+import { useNotification } from '../context/NotificationContext';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -13,6 +14,7 @@ const ProductDetail: React.FC = () => {
   const product = products.find(item => item.id.toString() === id);
   const { addToCart } = useContext(CartContext);
   const { checkStock } = useContext(InventoryContext);
+  const { showNotification } = useNotification();
 
   const [selectedImage, setSelectedImage] = useState(product?.images[0] || '');
   const [selectedSize, setSelectedSize] = useState<string>('');
@@ -21,20 +23,18 @@ const ProductDetail: React.FC = () => {
     return <div className="product-detail__notfound">Producto no encontrado</div>;
   }
 
-  // Se consulta el stock para validación, pero NO se muestra la cantidad
   const availableStock = selectedSize ? checkStock(product.id, selectedSize) : 0;
 
   const handleAddToCart = () => {
     if (!selectedSize) {
-      alert("Por favor, selecciona un talle.");
+      showNotification("Por favor, selecciona un talle.", "error");
       return;
     }
     if (availableStock < 1) {
-      alert("Lo sentimos, no hay stock disponible para el talle seleccionado.");
+      showNotification("Lo sentimos, no hay stock disponible para el talle seleccionado.", "error");
       return;
     }
     addToCart({ product, quantity: 1, size: selectedSize });
-    alert(`Se agregó 1 unidad de ${product.name} (talle ${selectedSize}) al carrito.`);
   };
 
   return (
@@ -52,7 +52,6 @@ const ProductDetail: React.FC = () => {
           <h2 className="product-detail__title">{product.name}</h2>
           <p className="product-detail__description">{product.description}</p>
           <p className="product-detail__price">${product.price}</p>
-
           <div className="product-detail__extra">
             <div className="product-detail__sizes">
               <h3 className="product-detail__subtitle">Talles Disponibles</h3>
@@ -69,7 +68,6 @@ const ProductDetail: React.FC = () => {
               </ul>
             </div>
           </div>
-
           <button 
             className="btn product-detail__add-to-cart"
             onClick={handleAddToCart}

@@ -12,12 +12,14 @@ import Checkout from './components/Checkout';
 import Marketing from './pages/Marketing';
 import ThemeToggle from './components/ThemeToggle';
 import Header from './components/Header';
+import NotificationContainer from './components/NotificationContainer';
 
 const App: React.FC = () => {
   return (
     <BrowserRouter>
       <Header />
       <ThemeToggle />
+      <NotificationContainer />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/productos" element={<Products />} />
@@ -38,17 +40,24 @@ export default App;
 /home/southatoms/Escritorio/develop/personal/grappling-gear/src/main.tsx
 
 Contenido:
+// src/main.tsx
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { CartProvider } from './context/CartContext';
+import { InventoryProvider } from './context/InventoryContext';
+import { NotificationProvider } from './context/NotificationContext';
 import './scss/main.scss';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <CartProvider>
-      <App />
-    </CartProvider>
+    <InventoryProvider>
+      <CartProvider>
+        <NotificationProvider>
+          <App />
+        </NotificationProvider>
+      </CartProvider>
+    </InventoryProvider>
   </React.StrictMode>
 );
 
@@ -141,24 +150,42 @@ import { Product } from '../types/product';
 import productsData from '../components/products.json';
 import FullZoomImage from '../components/FullZoomImage';
 import { CartContext } from '../context/CartContext';
+import { InventoryContext } from '../context/InventoryContext';
+import { useNotification } from '../context/NotificationContext';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const products: Product[] = productsData.products;
   const product = products.find(item => item.id.toString() === id);
   const { addToCart } = useContext(CartContext);
+  const { checkStock } = useContext(InventoryContext);
+  const { showNotification } = useNotification();
 
-  // Controla la imagen seleccionada de la galería
   const [selectedImage, setSelectedImage] = useState(product?.images[0] || '');
+  const [selectedSize, setSelectedSize] = useState<string>('');
 
   if (!product) {
     return <div className="product-detail__notfound">Producto no encontrado</div>;
   }
 
+  const availableStock = selectedSize ? checkStock(product.id, selectedSize) : 0;
+
+  const handleAddToCart = () => {
+    if (!selectedSize) {
+      showNotification("Por favor, selecciona un talle.", "error");
+      return;
+    }
+    if (availableStock < 1) {
+      showNotification("Lo sentimos, no hay stock disponible para el talle seleccionado.", "error");
+      return;
+    }
+    addToCart({ product, quantity: 1, size: selectedSize });
+    showNotification(`Se agregó 1 unidad de ${product.name} (talle ${selectedSize}) al carrito.`, "success");
+  };
+
   return (
     <div className="product-detail">
       <div className="product-detail__container">
-        {/* Vista del producto */}
         <div className="product-detail__viewer">
           <FullZoomImage
             src={selectedImage}
@@ -167,38 +194,35 @@ const ProductDetail: React.FC = () => {
             thumbnailHeight={400}
           />
         </div>
-        {/* Información del producto */}
         <div className="product-detail__info">
           <h2 className="product-detail__title">{product.name}</h2>
           <p className="product-detail__description">{product.description}</p>
           <p className="product-detail__price">${product.price}</p>
-
-          {/* Sección de talles y stock */}
           <div className="product-detail__extra">
             <div className="product-detail__sizes">
               <h3 className="product-detail__subtitle">Talles Disponibles</h3>
               <ul className="product-detail__size-list">
-                {product.availableSizes &&
-                  product.availableSizes.map((size, index) => (
-                    <li key={index} className="product-detail__size-item">{size}</li>
-                  ))}
+                {product.availableSizes.map((size, index) => (
+                  <li 
+                    key={index} 
+                    className={`product-detail__size-item ${selectedSize === size ? 'selected' : ''}`}
+                    onClick={() => setSelectedSize(size)}
+                  >
+                    {size}
+                  </li>
+                ))}
               </ul>
             </div>
-            <div className="product-detail__stock">
-              <h3 className="product-detail__subtitle">Stock</h3>
-              <p className="product-detail__stock-info">{product.stock} unidades disponibles</p>
-            </div>
           </div>
-
           <button 
             className="btn product-detail__add-to-cart"
-            onClick={() => addToCart({ product, quantity: 1 })}
+            onClick={handleAddToCart}
+            disabled={!selectedSize || availableStock < 1}
           >
             Añadir al Carrito
           </button>
         </div>
       </div>
-      {/* Galería de miniaturas */}
       <div className="product-detail__gallery">
         {product.images.map((img, index) => (
           <img
@@ -509,12 +533,11 @@ const Cart: React.FC = () => {
     0
   );
 
-  const handleQuantityChange = (productId: number, newQuantity: number) => {
-    // Si la cantidad es menor a 1 se elimina el producto del carrito
+  const handleQuantityChange = (productId: number, size: string, newQuantity: number) => {
     if (newQuantity < 1) {
-      removeFromCart(productId);
+      removeFromCart(productId, size);
     } else {
-      updateCartItem(productId, newQuantity);
+      updateCartItem(productId, size, newQuantity);
     }
   };
 
@@ -527,7 +550,7 @@ const Cart: React.FC = () => {
         <div className="cart__content">
           <div className="cart__items">
             {cartItems.map(item => (
-              <div className="cart__item" key={item.product.id}>
+              <div className="cart__item" key={`${item.product.id}-${item.size}`}>
                 <img
                   src={item.product.images[0]}
                   alt={item.product.name}
@@ -535,26 +558,28 @@ const Cart: React.FC = () => {
                 />
                 <div className="cart__item-info">
                   <h3>{item.product.name}</h3>
+                  <p>Talle: {item.size}</p>
                   <p>Precio: ${item.product.price}</p>
                   <div>
-                    <label htmlFor={`quantity-${item.product.id}`}>
+                    <label htmlFor={`quantity-${item.product.id}-${item.size}`}>
                       Cantidad:
                     </label>
                     <input
-                      id={`quantity-${item.product.id}`}
+                      id={`quantity-${item.product.id}-${item.size}`}
                       type="number"
                       value={item.quantity}
                       min="1"
                       onChange={(e) =>
                         handleQuantityChange(
                           item.product.id,
+                          item.size,
                           parseInt(e.target.value)
                         )
                       }
                       style={{ width: '60px', marginRight: '1rem' }}
                     />
                     <button
-                      onClick={() => removeFromCart(item.product.id)}
+                      onClick={() => removeFromCart(item.product.id, item.size)}
                       className="btn"
                     >
                       Eliminar
@@ -606,7 +631,12 @@ Contenido:
         "/pictures/ArtBoard/Artboard1BlackSide.webp"
       ],
       "availableSizes": ["S", "M", "L", "XL"],
-      "stock": 15
+      "stockBySize": {
+        "S": 4,
+        "M": 4,
+        "L": 4,
+        "XL": 3
+      }
     },
     {
       "id": 2,
@@ -618,7 +648,12 @@ Contenido:
         "/pictures/ArtBoard/Artboard1WhitesideWhite.webp"
       ],
       "availableSizes": ["S", "M", "L", "XL"],
-      "stock": 20
+      "stockBySize": {
+        "S": 5,
+        "M": 5,
+        "L": 5,
+        "XL": 5
+      }
     },
     {
       "id": 3,
@@ -629,7 +664,11 @@ Contenido:
         "/pictures/gordobrian/dorada_front.webp"
       ],
       "availableSizes": ["S", "M", "L"],
-      "stock": 30
+      "stockBySize": {
+        "S": 10,
+        "M": 10,
+        "L": 10
+      }
     },
     {
       "id": 4,
@@ -652,7 +691,11 @@ Contenido:
         "/pictures/kingz/draft_rash_front/DSC_6955_1620x.webp"
       ],
       "availableSizes": ["M", "L", "XL"],
-      "stock": 25
+      "stockBySize": {
+        "M": 8,
+        "L": 9,
+        "XL": 8
+      }
     },
     {
       "id": 5,
@@ -664,7 +707,11 @@ Contenido:
         "/pictures/gordobrian/negra/blackgordonusaSSfront.webp"
       ],
       "availableSizes": ["S", "M", "L"],
-      "stock": 18
+      "stockBySize": {
+        "S": 6,
+        "M": 6,
+        "L": 6
+      }
     },
     {
       "id": 6,
@@ -680,7 +727,11 @@ Contenido:
         "/pictures/kingz/galvao/DSC_0446_1620x.webp"
       ],
       "availableSizes": ["M", "L", "XL"],
-      "stock": 22
+      "stockBySize": {
+        "M": 7,
+        "L": 7,
+        "XL": 8
+      }
     },
     {
       "id": 7,
@@ -701,7 +752,10 @@ Contenido:
         "/pictures/kingz/negrashark/DSC_6979_1620x.webp"
       ],
       "availableSizes": ["L", "XL"],
-      "stock": 10
+      "stockBySize": {
+        "L": 5,
+        "XL": 5
+      }
     }
   ]
 }
@@ -809,18 +863,27 @@ export default ProductCard;
 /home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/Hero.tsx
 
 Contenido:
-// Hero.tsx
+// src/components/Hero.tsx
 import React from 'react';
 import '../scss/components/_hero.scss';
+import { useNotification } from '../context/NotificationContext';
 
 const Hero: React.FC = () => {
+  const { showNotification } = useNotification();
+
+  const handleTestNotification = () => {
+    showNotification('¡Esta es una notificación de prueba!', 'info');
+  };
+
   return (
     <section className="hero">
       <div className="hero__banner">
- 
         <div className="hero__content">
-{/*           <h1>Grappling Gear</h1>
- */}          <a href="/productos" className="btn">Explora la colección</a>
+          <a href="/productos" className="btn">Explora la colección</a>
+          {/* Botón de prueba para ver las notificaciones */}
+          <button className="btn" onClick={handleTestNotification} style={{ marginTop: '1rem' }}>
+            Test Notificación
+          </button>
         </div>
       </div>
     </section>
@@ -828,6 +891,35 @@ const Hero: React.FC = () => {
 };
 
 export default Hero;
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/NotificationContainer.tsx
+
+Contenido:
+// src/components/NotificationContainer.tsx
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { useNotification } from '../context/NotificationContext';
+import '../scss/components/_notifications.scss';
+
+const NotificationContainer: React.FC = () => {
+  const { notifications } = useNotification();
+
+  return ReactDOM.createPortal(
+    <div className="notification-container">
+      {notifications.map(notif => (
+        <div key={notif.id} className={`notification ${notif.type}`}>
+          {notif.message}
+        </div>
+      ))}
+    </div>,
+    document.body
+  );
+};
+
+export default NotificationContainer;
 
 
 --------------------------------------------------------------------------------
@@ -986,13 +1078,14 @@ import { Product } from '../types/product';
 export interface CartItem {
   product: Product;
   quantity: number;
+  size: string; // Nuevo campo para el talle seleccionado
 }
 
 interface CartContextType {
   cartItems: CartItem[];
   addToCart: (item: CartItem) => void;
-  removeFromCart: (productId: number) => void;
-  updateCartItem: (productId: number, newQuantity: number) => void;
+  removeFromCart: (productId: number, size: string) => void;
+  updateCartItem: (productId: number, size: string, newQuantity: number) => void;
   clearCart: () => void;
 }
 
@@ -1009,7 +1102,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const addToCart = (item: CartItem) => {
     setCartItems(prevItems => {
-      const index = prevItems.findIndex(ci => ci.product.id === item.product.id);
+      // Se busca si ya existe el mismo producto con el mismo talle
+      const index = prevItems.findIndex(ci => ci.product.id === item.product.id && ci.size === item.size);
       if (index !== -1) {
         const newItems = [...prevItems];
         newItems[index].quantity += item.quantity;
@@ -1019,16 +1113,16 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const removeFromCart = (productId: number) => {
+  const removeFromCart = (productId: number, size: string) => {
     setCartItems(prevItems =>
-      prevItems.filter(item => item.product.id !== productId)
+      prevItems.filter(item => !(item.product.id === productId && item.size === size))
     );
   };
 
-  const updateCartItem = (productId: number, newQuantity: number) => {
+  const updateCartItem = (productId: number, size: string, newQuantity: number) => {
     setCartItems(prevItems =>
       prevItems.map(item => {
-        if (item.product.id === productId) {
+        if (item.product.id === productId && item.size === size) {
           return { ...item, quantity: newQuantity };
         }
         return item;
@@ -1046,6 +1140,120 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     >
       {children}
     </CartContext.Provider>
+  );
+};
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/context/NotificationContext.tsx
+
+Contenido:
+// src/context/NotificationContext.tsx
+import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+
+export type NotificationType = 'success' | 'error' | 'info';
+
+export interface Notification {
+  id: string;
+  type: NotificationType;
+  message: string;
+}
+
+interface NotificationContextType {
+  notifications: Notification[];
+  showNotification: (message: string, type?: NotificationType) => void;
+  removeNotification: (id: string) => void;
+}
+
+export const NotificationContext = createContext<NotificationContextType>({
+  notifications: [],
+  showNotification: () => {},
+  removeNotification: () => {},
+});
+
+export const NotificationProvider = ({ children }: { children: ReactNode }) => {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  const showNotification = (message: string, type: NotificationType = 'info') => {
+    const id = uuidv4();
+    setNotifications((prev) => [...prev, { id, message, type }]);
+    // Se elimina la notificación después de 3 segundos
+    setTimeout(() => removeNotification(id), 3000);
+  };
+
+  const removeNotification = (id: string) => {
+    setNotifications((prev) => prev.filter((notif) => notif.id !== id));
+  };
+
+  return (
+    <NotificationContext.Provider value={{ notifications, showNotification, removeNotification }}>
+      {children}
+    </NotificationContext.Provider>
+  );
+};
+
+export const useNotification = () => useContext(NotificationContext);
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/context/InventoryContext.tsx
+
+Contenido:
+// src/context/InventoryContext.tsx
+import React, { createContext, useState, ReactNode } from 'react';
+import productsData from '../components/products.json';
+
+interface Inventory {
+  [productId: number]: {
+    [size: string]: number;
+  }
+}
+
+interface InventoryContextType {
+  inventory: Inventory;
+  checkStock: (productId: number, size: string) => number;
+  reduceStock: (productId: number, size: string, quantity: number) => boolean;
+}
+
+export const InventoryContext = createContext<InventoryContextType>({
+  inventory: {},
+  checkStock: () => 0,
+  reduceStock: () => false,
+});
+
+export const InventoryProvider = ({ children }: { children: ReactNode }) => {
+  const initialInventory: Inventory = {};
+  productsData.products.forEach(product => {
+    initialInventory[product.id] = product.stockBySize;
+  });
+  const [inventory, setInventory] = useState<Inventory>(initialInventory);
+
+  const checkStock = (productId: number, size: string): number => {
+    return inventory[productId] ? inventory[productId][size] || 0 : 0;
+  };
+
+  const reduceStock = (productId: number, size: string, quantity: number): boolean => {
+    const currentStock = checkStock(productId, size);
+    if (currentStock >= quantity) {
+      setInventory(prev => ({
+        ...prev,
+        [productId]: {
+          ...prev[productId],
+          [size]: prev[productId][size] - quantity,
+        },
+      }));
+      return true;
+    }
+    return false;
+  };
+
+  return (
+    <InventoryContext.Provider value={{ inventory, checkStock, reduceStock }}>
+      {children}
+    </InventoryContext.Provider>
   );
 };
 
@@ -1161,6 +1369,55 @@ a {
 
 a:hover {
   color: var(--accent-color);
+}
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_notifications.scss
+
+Contenido:
+// src/scss/components/_notifications.scss
+.notification-container {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.notification {
+  min-width: 250px;
+  padding: 1rem;
+  border-radius: 4px;
+  color: var(--background-color);
+  font-size: 0.9rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  opacity: 0.95;
+  animation: slideIn 0.3s ease-out;
+}
+
+.notification.info {
+  background-color: #2196F3; /* Azul */
+}
+
+.notification.success {
+  background-color: #4CAF50; /* Verde */
+}
+
+.notification.error {
+  background-color: #F44336; /* Rojo */
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
 
 
@@ -1890,7 +2147,19 @@ Contenido:
       border-color: var(--accent-color);
     }
   }
-
+  .product-detail__size-item {
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--secondary-hover-color);
+    border-radius: 4px;
+    transition: background-color 0.3s;
+  }
+  
+  .product-detail__size-item.selected {
+    background-color: var(--accent-color);
+    color: var(--background-color);
+  }
+  
   &__notfound {
     text-align: center;
     font-size: 1.5rem;
@@ -1978,7 +2247,12 @@ Contenido:
         "/pictures/ArtBoard/Artboard1BlackSide.webp"
       ],
       "availableSizes": ["S", "M", "L", "XL"],
-      "stock": 15
+      "stockBySize": {
+        "S": 4,
+        "M": 4,
+        "L": 4,
+        "XL": 3
+      }
     },
     {
       "id": 2,
@@ -1990,7 +2264,12 @@ Contenido:
         "/pictures/ArtBoard/Artboard1WhitesideWhite.webp"
       ],
       "availableSizes": ["S", "M", "L", "XL"],
-      "stock": 20
+      "stockBySize": {
+        "S": 5,
+        "M": 5,
+        "L": 5,
+        "XL": 5
+      }
     },
     {
       "id": 3,
@@ -2001,7 +2280,11 @@ Contenido:
         "/pictures/gordobrian/dorada_front.webp"
       ],
       "availableSizes": ["S", "M", "L"],
-      "stock": 30
+      "stockBySize": {
+        "S": 10,
+        "M": 10,
+        "L": 10
+      }
     },
     {
       "id": 4,
@@ -2024,7 +2307,11 @@ Contenido:
         "/pictures/kingz/draft_rash_front/DSC_6955_1620x.webp"
       ],
       "availableSizes": ["M", "L", "XL"],
-      "stock": 25
+      "stockBySize": {
+        "M": 8,
+        "L": 9,
+        "XL": 8
+      }
     },
     {
       "id": 5,
@@ -2036,7 +2323,11 @@ Contenido:
         "/pictures/gordobrian/negra/blackgordonusaSSfront.webp"
       ],
       "availableSizes": ["S", "M", "L"],
-      "stock": 18
+      "stockBySize": {
+        "S": 6,
+        "M": 6,
+        "L": 6
+      }
     },
     {
       "id": 6,
@@ -2052,7 +2343,11 @@ Contenido:
         "/pictures/kingz/galvao/DSC_0446_1620x.webp"
       ],
       "availableSizes": ["M", "L", "XL"],
-      "stock": 22
+      "stockBySize": {
+        "M": 7,
+        "L": 7,
+        "XL": 8
+      }
     },
     {
       "id": 7,
@@ -2073,7 +2368,10 @@ Contenido:
         "/pictures/kingz/negrashark/DSC_6979_1620x.webp"
       ],
       "availableSizes": ["L", "XL"],
-      "stock": 10
+      "stockBySize": {
+        "L": 5,
+        "XL": 5
+      }
     }
   ]
 }

@@ -9,12 +9,14 @@ import Checkout from './components/Checkout';
 import Marketing from './pages/Marketing';
 import ThemeToggle from './components/ThemeToggle';
 import Header from './components/Header';
+import NotificationContainer from './components/NotificationContainer';
 
 const App: React.FC = () => {
   return (
     <BrowserRouter>
       <Header />
       <ThemeToggle />
+      <NotificationContainer />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/productos" element={<Products />} />
