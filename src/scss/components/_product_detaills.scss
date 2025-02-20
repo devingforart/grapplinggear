@@ -124,7 +124,19 @@
       border-color: var(--accent-color);
     }
   }
-
+  .product-detail__size-item {
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--secondary-hover-color);
+    border-radius: 4px;
+    transition: background-color 0.3s;
+  }
+  
+  .product-detail__size-item.selected {
+    background-color: var(--accent-color);
+    color: var(--background-color);
+  }
+  
   &__notfound {
     text-align: center;
     font-size: 1.5rem;

@@ -5,13 +5,14 @@ import { Product } from '../types/product';
 export interface CartItem {
   product: Product;
   quantity: number;
+  size: string; // Nuevo campo para el talle seleccionado
 }
 
 interface CartContextType {
   cartItems: CartItem[];
   addToCart: (item: CartItem) => void;
-  removeFromCart: (productId: number) => void;
-  updateCartItem: (productId: number, newQuantity: number) => void;
+  removeFromCart: (productId: number, size: string) => void;
+  updateCartItem: (productId: number, size: string, newQuantity: number) => void;
   clearCart: () => void;
 }
 
@@ -28,7 +29,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const addToCart = (item: CartItem) => {
     setCartItems(prevItems => {
-      const index = prevItems.findIndex(ci => ci.product.id === item.product.id);
+      // Se busca si ya existe el mismo producto con el mismo talle
+      const index = prevItems.findIndex(ci => ci.product.id === item.product.id && ci.size === item.size);
       if (index !== -1) {
         const newItems = [...prevItems];
         newItems[index].quantity += item.quantity;
@@ -38,16 +40,16 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const removeFromCart = (productId: number) => {
+  const removeFromCart = (productId: number, size: string) => {
     setCartItems(prevItems =>
-      prevItems.filter(item => item.product.id !== productId)
+      prevItems.filter(item => !(item.product.id === productId && item.size === size))
     );
   };
 
-  const updateCartItem = (productId: number, newQuantity: number) => {
+  const updateCartItem = (productId: number, size: string, newQuantity: number) => {
     setCartItems(prevItems =>
       prevItems.map(item => {
-        if (item.product.id === productId) {
+        if (item.product.id === productId && item.size === size) {
           return { ...item, quantity: newQuantity };
         }
         return item;

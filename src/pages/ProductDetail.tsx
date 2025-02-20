@@ -14,10 +14,20 @@ const ProductDetail: React.FC = () => {
 
   // Controla la imagen seleccionada de la galería
   const [selectedImage, setSelectedImage] = useState(product?.images[0] || '');
+  // Estado para el talle seleccionado
+  const [selectedSize, setSelectedSize] = useState<string>('');
 
   if (!product) {
     return <div className="product-detail__notfound">Producto no encontrado</div>;
   }
+
+  const handleAddToCart = () => {
+    if (!selectedSize) {
+      alert("Por favor selecciona un talle.");
+      return;
+    }
+    addToCart({ product, quantity: 1, size: selectedSize });
+  };
 
   return (
     <div className="product-detail">
@@ -44,7 +54,13 @@ const ProductDetail: React.FC = () => {
               <ul className="product-detail__size-list">
                 {product.availableSizes &&
                   product.availableSizes.map((size, index) => (
-                    <li key={index} className="product-detail__size-item">{size}</li>
+                    <li 
+                      key={index} 
+                      className={`product-detail__size-item ${selectedSize === size ? 'selected' : ''}`}
+                      onClick={() => setSelectedSize(size)}
+                    >
+                      {size}
+                    </li>
                   ))}
               </ul>
             </div>
@@ -56,7 +72,7 @@ const ProductDetail: React.FC = () => {
 
           <button 
             className="btn product-detail__add-to-cart"
-            onClick={() => addToCart({ product, quantity: 1 })}
+            onClick={handleAddToCart}
           >
             Añadir al Carrito
           </button>

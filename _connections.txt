@@ -229,10 +229,7 @@ import { Product } from '../types/product';
 import productsData from './products.json';
 
 const ProductList: React.FC = () => {
-  // Si el JSON tiene la estructura { products: [...] }
   const products: Product[] = productsData.products;
-  console.log(products)
-
   return (
     <div className="product-list">
       {products.map(product => (
@@ -777,26 +774,28 @@ Contenido:
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Product } from '../types/product';
-import ZoomImage from './ZoomImage';
 
-interface ProductCardProps {
-  product: Product;
-}
-
-const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
   return (
     <div className="product-card">
-      <div className="product-card__image">
-        {/* Ajustamos la imagen con dimensiones moderadas */}
-        <ZoomImage src={product.images[0]} alt={product.name} width={280} height={160} zoomLevel={2} />
-      </div>
+      <Link to={`/producto/${product.id}`} className="product-card__link">
+        <div className="product-card__image-container">
+          <img
+            src={product.images[0]}
+            alt={product.name}
+            className="product-card__image"
+          />
+          <div className="product-card__overlay">
+            <span className="product-card__quick-view">Ver Detalle</span>
+          </div>
+        </div>
+      </Link>
       <div className="product-card__info">
-        <h3>{product.name}</h3>
-        <p>{product.description.substring(0, 70)}...</p>
-        <p className="price">${product.price}</p>
-        <Link to={`/producto/${product.id}`} className="btn">
-          Ver Detalle
-        </Link>
+        <h3 className="product-card__title">{product.name}</h3>
+        <p className="product-card__description">
+          {product.description.substring(0, 70)}...
+        </p>
+        <div className="product-card__price">${product.price}</div>
       </div>
     </div>
   );
@@ -1444,6 +1443,109 @@ Contenido:
 }
 
 
+// src/scss/components/_product.scss
+
+/* Contenedor en grid para la lista de productos */
+.product-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  padding: 2rem;
+}
+
+/* Tarjeta de producto */
+.product-card {
+  background-color: var(--background-color);
+  border: 1px solid var(--secondary-hover-color);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  }
+
+  &__link {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  &__image-container {
+    position: relative;
+    overflow: hidden;
+  }
+
+  &__image {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    transition: transform 0.3s;
+  }
+
+  &:hover .product-card__image {
+    transform: scale(1.05);
+  }
+
+  &__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.3s;
+  }
+
+  &:hover .product-card__overlay {
+    opacity: 1;
+  }
+
+  &__quick-view {
+    color: var(--background-color);
+    font-size: 1.1rem;
+    background: var(--accent-color);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  &__info {
+    padding: 1rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  &__title {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+  }
+
+  &__description {
+    font-size: 0.9rem;
+    color: var(--text-color);
+    margin-bottom: 1rem;
+  }
+
+  &__price {
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--accent-color);
+  }
+}
+
+
 --------------------------------------------------------------------------------
 
 /home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_themeToggle.scss
@@ -1794,6 +1896,67 @@ Contenido:
     font-size: 1.5rem;
     color: var(--text-color);
     margin: 2rem 0;
+  }
+}
+
+/* Ajustes para pantallas hasta 768px (tablets) */
+@media (max-width: 768px) {
+  .product-detail {
+    padding: 1rem;
+  }
+  .product-detail__container {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  .product-detail__viewer,
+  .product-detail__info {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+  .product-detail__title {
+    font-size: 1.5rem;
+  }
+  .product-detail__description {
+    font-size: 0.9rem;
+  }
+  .product-detail__price {
+    font-size: 1.2rem;
+  }
+  .product-detail__extra {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .product-detail__gallery {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .product-detail__thumb {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+/* Enfocándonos en móviles (hasta 480px) */
+@media (max-width: 480px) {
+  /* Asegura que el contenedor del viewer ocupe el ancho completo sin causar scroll */
+  .product-detail__viewer {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto;
+  }
+  
+  /* Forzar que el contenedor de FullZoomImage se ajuste al ancho del dispositivo */
+  .full-zoom-image-container {
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  /* Asegura que la imagen dentro de FullZoomImage se ajuste correctamente */
+  .full-zoom-image-container img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
   }
 }
 

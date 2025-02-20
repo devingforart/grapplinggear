@@ -11,12 +11,11 @@ const Cart: React.FC = () => {
     0
   );
 
-  const handleQuantityChange = (productId: number, newQuantity: number) => {
-    // Si la cantidad es menor a 1 se elimina el producto del carrito
+  const handleQuantityChange = (productId: number, size: string, newQuantity: number) => {
     if (newQuantity < 1) {
-      removeFromCart(productId);
+      removeFromCart(productId, size);
     } else {
-      updateCartItem(productId, newQuantity);
+      updateCartItem(productId, size, newQuantity);
     }
   };
 
@@ -29,7 +28,7 @@ const Cart: React.FC = () => {
         <div className="cart__content">
           <div className="cart__items">
             {cartItems.map(item => (
-              <div className="cart__item" key={item.product.id}>
+              <div className="cart__item" key={`${item.product.id}-${item.size}`}>
                 <img
                   src={item.product.images[0]}
                   alt={item.product.name}
@@ -37,26 +36,28 @@ const Cart: React.FC = () => {
                 />
                 <div className="cart__item-info">
                   <h3>{item.product.name}</h3>
+                  <p>Talle: {item.size}</p>
                   <p>Precio: ${item.product.price}</p>
                   <div>
-                    <label htmlFor={`quantity-${item.product.id}`}>
+                    <label htmlFor={`quantity-${item.product.id}-${item.size}`}>
                       Cantidad:
                     </label>
                     <input
-                      id={`quantity-${item.product.id}`}
+                      id={`quantity-${item.product.id}-${item.size}`}
                       type="number"
                       value={item.quantity}
                       min="1"
                       onChange={(e) =>
                         handleQuantityChange(
                           item.product.id,
+                          item.size,
                           parseInt(e.target.value)
                         )
                       }
                       style={{ width: '60px', marginRight: '1rem' }}
                     />
                     <button
-                      onClick={() => removeFromCart(item.product.id)}
+                      onClick={() => removeFromCart(item.product.id, item.size)}
                       className="btn"
                     >
                       Eliminar
