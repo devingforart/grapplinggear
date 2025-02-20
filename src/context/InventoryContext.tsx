@@ -1,11 +1,9 @@
 // src/context/InventoryContext.tsx
-import React, { createContext, useState, ReactNode } from 'react';
+import { createContext, useState, ReactNode } from 'react';
 import productsData from '../components/products.json';
 
 interface Inventory {
-  [productId: number]: {
-    [size: string]: number;
-  }
+  [productId: number]: Partial<Record<string, number>>;
 }
 
 interface InventoryContextType {
@@ -38,7 +36,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
         ...prev,
         [productId]: {
           ...prev[productId],
-          [size]: prev[productId][size] - quantity,
+          [size]: (prev[productId][size] || 0) - quantity,
         },
       }));
       return true;

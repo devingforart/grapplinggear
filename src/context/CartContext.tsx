@@ -1,11 +1,11 @@
 // src/context/CartContext.tsx
-import React, { createContext, useState, ReactNode } from 'react';
+import { createContext, useState, ReactNode } from 'react';
 import { Product } from '../types/product';
 
 export interface CartItem {
   product: Product;
   quantity: number;
-  size: string; // Nuevo campo para el talle seleccionado
+  size: string;
 }
 
 interface CartContextType {
@@ -30,7 +30,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const addToCart = (item: CartItem) => {
     setCartItems(prevItems => {
       // Se busca si ya existe el mismo producto con el mismo talle
-      const index = prevItems.findIndex(ci => ci.product.id === item.product.id && ci.size === item.size);
+      const index = prevItems.findIndex(
+        ci => ci.product.id === item.product.id && ci.size === item.size
+      );
       if (index !== -1) {
         const newItems = [...prevItems];
         newItems[index].quantity += item.quantity;
@@ -62,9 +64,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <CartContext.Provider
-      value={{ cartItems, addToCart, removeFromCart, updateCartItem, clearCart }}
-    >
+    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateCartItem, clearCart }}>
       {children}
     </CartContext.Provider>
   );
