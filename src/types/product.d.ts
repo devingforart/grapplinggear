@@ -9,4 +9,5 @@ export interface Product {
   images: string[];
   availableSizes: string[];        // Propiedad agregada para los talles disponibles
   stockBySize: Partial<Record<string, number>>; // Permite que algunas claves (como "XL") puedan faltar
+  new: boolean;
 }

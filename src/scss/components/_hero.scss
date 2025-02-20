@@ -1,143 +1,183 @@
+// src/scss/components/_hero.scss
 .hero {
   position: relative;
   width: 100%;
-  height: 100vh; // Altura completa para una experiencia inmersiva
-  overflow: hidden;
+  height: 80vh; /* Ajustamos la altura para que no sea demasiado alta */
   display: flex;
+  justify-content: space-between; /* Alineamos los elementos a lo largo de las columnas */
   align-items: center;
-  justify-content: center;
+  background-color: var(--background-color);
+  overflow: hidden;
 
-  // Imagen de fondo con efecto parallax y animación de zoom sutil
-  &__background {
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: url('/pictures/MV12-2111233.jpg') center/cover no-repeat;
-    animation: zoomIn 20s ease-in-out infinite;
-    z-index: 1;
-  }
+  /* Estilos para pantallas grandes (PC) */
+  @media (min-width: 768px) {
+    flex-direction: row; /* Dos columnas: la foto a la izquierda y el contenido a la derecha */
 
-  // Overlay para mejorar la legibilidad del contenido
-  &__overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 2;
-    // Se usa la variable definida según el theme, pero en mobile se sobreescribirá
-    background: var(--hero-overlay, rgba(0, 0, 0, 0.5));
-  }
-
-  // Contenedor del contenido principal
-  &__container {
-    position: relative;
-    z-index: 3;
-    max-width: 1200px;
-    width: 90%;
-    padding: 2rem;
-    text-align: center;
-  }
-
-  // Estilos para el contenido textual
-  &__content {
-    color: var(--text-color, #fff);
-    
-    h1 {
-      font-size: 3rem;
-      margin-bottom: 1rem;
-      text-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+    .hero__background {
+      position: relative;
+      width: 50%; /* El carousel ocupará el 50% del espacio */
+      height: 100%;
+      z-index: 1;
+      object-fit: cover;
     }
-    
-    p {
-      font-size: 1.25rem;
-      margin-bottom: 2rem;
-      text-shadow: 0 3px 5px rgba(0, 0, 0, 0.4);
+
+    .hero__content {
+      position: relative;
+      z-index: 2;
+      width: 50%; /* El contenido ocupará el otro 50% */
+      text-align: center; /* Centrado del contenido dentro de su área */
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
   }
 
-  // Botón de llamada a la acción con nuevo estilo para mejor contraste
-  &__cta {
-    display: inline-block;
-    padding: 0.75rem 2rem;
+  /* Estilos para dispositivos móviles y tabletas */
+  @media (max-width: 768px) {
+    flex-direction: column; /* En móvil, se apilan los elementos */
+    height: 100vh;
+    .hero__background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.5;
+    }
+
+    .hero__content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 2rem;
+      max-width: 800px;
+      width: 100%;
+    }
+  }
+
+  .hero__title {
+    font-size: 3rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 1.5rem;
+    color: var(--primary-color);
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .hero__subtitle {
+    font-size: 1.5rem;
+    color: var(--secondary-color);
+    margin-bottom: 2rem;
+    font-weight: 400;
+    line-height: 1.5;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .hero__cta {
     font-size: 1rem;
-    font-weight: bold;
-    background: var(--accent-color);         // Fondo con el color de acento
-    color: var(--background-color);           // Texto usando el color de fondo (claro u oscuro)
-    border: none;
-    border-radius: 50px;
+    font-weight: 600;
+    padding: 12px 30px;
+    background-color: var(--accent-color);
+    color: var(--background-color);
     text-decoration: none;
-    transition: background-color 0.3s ease, transform 0.3s ease;
-    position: relative;
-    overflow: hidden;
-    
+    border-radius: 50px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    display: inline-block;
+
     &:hover {
-      background: #c6962c;  // Un tono un poco más oscuro (puedes ajustar este valor)
+      background-color: var(--secondary-color);
       transform: translateY(-3px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+    }
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--secondary-color);
     }
   }
 
-  // Indicador de scroll con animación de rebote
-  &__scroll {
+  /* Estilo para el carousel */
+  .image-carousel {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  .image-carousel__wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .image-carousel__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Cubrir el área sin distorsionar la imagen */
+    transition: opacity 0.5s ease-in-out;
+  }
+
+  /* Controles de navegación */
+  .image-carousel__controls {
     position: absolute;
-    bottom: 2rem;
+    top: 50%;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    transform: translateY(-50%);
+    z-index: 10;
+  }
+
+  .image-carousel__button {
+    background: rgba(0, 0, 0, 0.3);
+    border: none;
+    color: white;
+    font-size: 2rem;
+    padding: 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    opacity: 0.8;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.6);
+      transform: scale(1.1);
+    }
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  .image-carousel__indicators {
+    position: absolute;
+    bottom: 15px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 3;
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    color: var(--background-color, #fff);
-    font-size: 0.875rem;
-    animation: fadeIn 1.5s ease-out forwards;
+    gap: 10px;
   }
 
-  &__scroll-arrow {
-    width: 24px;
-    height: 24px;
-    margin-top: 0.5rem;
-    animation: bounce 2s infinite;
-  }
-
-  // Animaciones clave
-  @keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(8px); }
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes zoomIn {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-  }
-
-  // Ajustes para dispositivos móviles
-  @media (max-width: 768px) {
-    // Para mobile, sobreescribimos el overlay con un degradado más oscuro
-    &__overlay {
-      background: linear-gradient(180deg, var(--hero-overlay), var(--background-color));
+  .indicator {
+    width: 12px;
+    height: 12px;
+    background-color: rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  
+    &.active {
+      background-color: white;
+      width: 16px;
+      height: 16px;
     }
-    
-    // Agregamos un fondo semi-transparente al contenedor para mejorar la legibilidad
-    &__container {
-      padding: 1rem;
-      border-radius: 8px;
-    }
-    
-    &__content {
-      h1 { font-size: 2.25rem; }
-      p { font-size: 1rem; }
-    }
-    
-    &__cta {
-      padding: 0.5rem 1.5rem;
-      font-size: 0.875rem;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.8);
     }
   }
 }
