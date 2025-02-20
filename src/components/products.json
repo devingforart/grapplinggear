@@ -16,8 +16,8 @@
       "description": "Rashguard resistente y cómodo, disponible en varios diseños.",
       "price": 60,
       "images": [
-        "/pictures/ArtBoard/Artboard1Blackfront.webp",
-        "/pictures/ArtBoard/Artboard1BlackSide.webp"
+        "/pictures/ArtBoard/Artboard1WhitefrontWhite.webp",
+        "/pictures/ArtBoard/Artboard1WhitesideWhite.webp"
       ]
     },
     {
@@ -26,8 +26,71 @@
       "description": "Shorts ideales para combates y entrenamientos de grappling.",
       "price": 40,
       "images": [
-        "/pictures/ArtBoard/Artboard1Blackfront.webp",
-        "/pictures/ArtBoard/Artboard1BlackSide.webp"
+       "/pictures/gordobrian/dorada_front.webp"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Shorts de Combate",
+      "description": "Shorts ideales para combates y entrenamientos de grappling.",
+      "price": 40,
+      "images": [
+        "/pictures/kingz/draft_rash_front/DSC_6926_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6932_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6933_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6938_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6940_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6942_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6944_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6948_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6949_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6950_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6951_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6952_1620x.webp",
+        "/pictures/kingz/draft_rash_front/DSC_6955_1620x.webp"     
+        
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Shorts de Combate",
+      "description": "Shorts ideales para combates y entrenamientos de grappling.",
+      "price": 40,
+      "images": [
+       "/pictures/gordobrian/negra/blackgordonusaSSback.webp",
+       "/pictures/gordobrian/negra/blackgordonusaSSfront.webp"
+      ]
+    },   {
+      "id": 6,
+      "name": "Shorts de Combate",
+      "description": "Shorts ideales para combates y entrenamientos de grappling.",
+      "price": 40,
+      "images": [
+       "/pictures/kingz/galvao/DSC_0426_1620x.webp",
+       "/pictures/kingz/galvao/DSC_0433_1620x.webp",
+       "/pictures/kingz/galvao/DSC_0438_1620x.webp",
+       "/pictures/kingz/galvao/DSC_0440_1620x.webp",
+       "/pictures/kingz/galvao/DSC_0442_1620x.webp",
+       "/pictures/kingz/galvao/DSC_0446_1620x.webp"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Shorts de Combate",
+      "description": "Shorts ideales para combates y entrenamientos de grappling.",
+      "price": 40,
+      "images": [
+       "/pictures/kingz/negrashark/DSC_6956_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6961_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6965_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6967_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6969_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6971_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6975_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6976_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6977_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6978_1620x.webp",
+       "/pictures/kingz/negrashark/DSC_6979_1620x.webp"
       ]
     }
   ]
