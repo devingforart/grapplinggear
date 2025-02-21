@@ -1,4 +1,3 @@
-// src/components/ProductGrid.tsx
 import React from 'react';
 import { motion } from 'framer-motion';
 import ProductCard from './ProductCard';
@@ -7,6 +6,9 @@ import { Product } from '../types/product';
 
 const ProductGrid: React.FC = () => {
   const products: Product[] = productsData.products;
+
+  // Filtramos los productos para mostrar solo los que tienen landing: true
+  const landingProducts = products.filter(product => product.landing === true);
 
   return (
     <motion.section 
@@ -18,13 +20,13 @@ const ProductGrid: React.FC = () => {
       transition={{ duration: 0.8, ease: "easeOut" }}
     >
       <div className="collection-intro">
-        <h2>Nuestra Colección</h2>
+        <h2>Nuevos arribos</h2>
         <p>
           Descubre la fusión perfecta entre tecnología y pasión por el grappling.
         </p>
       </div>
       <div className="product-grid-creative__list">
-        {products.map(product => (
+        {landingProducts.map(product => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>

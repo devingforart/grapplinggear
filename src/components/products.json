@@ -17,7 +17,9 @@
         "L": 4,
         "XL": 3
       },
-      "new": false
+      "new": false,
+      "landing":true
+
 
     },
     {
@@ -37,7 +39,9 @@
         "L": 5,
         "XL": 5
       },
-      "new": true
+      "new": true,
+      "landing":true
+
 
     },
     {
@@ -55,7 +59,9 @@
         "M": 10,
         "L": 10
       },
-      "new": false
+      "new": false,
+      "landing":true
+
 
     },
     {
@@ -85,7 +91,8 @@
         "L": 9,
         "XL": 8
       },
-      "new": false
+      "new": false,
+      "landing":false
 
     },
     {
@@ -104,7 +111,9 @@
         "M": 6,
         "L": 6
       },
-      "new": true
+      "new": true,
+      "landing":true
+
 
     },
     {
@@ -127,7 +136,9 @@
         "L": 7,
         "XL": 8
       },
-      "new": true
+      "new": true,
+      "landing":false
+
     },
     {
       "id": 7,
@@ -153,7 +164,9 @@
         "L": 5,
         "XL": 5
       },
-      "new": true
+      "new": true,
+      "landing":false
+
 
     },
     {
@@ -175,7 +188,9 @@
         "L": 7,
         "XL": 8
       },
-      "new": true
+      "new": true,
+      "landing":false
+
 
     }
   ]

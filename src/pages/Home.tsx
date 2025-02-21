@@ -7,10 +7,10 @@ import productsData from '../components/products.json'; // Importar los producto
 
 const Home: React.FC = () => {
   // Filtrar los productos nuevos
-  const newProducts = productsData.products.filter(product => product.new);
+  const newProducts = productsData.products.filter(product => product.landing);
 
   // Extraer solo las imágenes para el carrusel
-  const newProductImages = newProducts.flatMap(product => product.images);
+  const newProductImages = newProducts.flatMap(product => product.images[0]);
 
   return (
     <div className="home">
