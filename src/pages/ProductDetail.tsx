@@ -1,23 +1,37 @@
 // src/pages/ProductDetail.tsx
-import React, { useState, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
 import { Product } from '../types/product';
-import productsData from '../components/products.json';
 import FullZoomImage from '../components/FullZoomImage';
 import { CartContext } from '../context/CartContext';
 import { InventoryContext } from '../context/InventoryContext';
 import { useNotification } from '../context/NotificationContext';
+import { loadProducts } from '../store'; // Cambié esto de fetchProducts a loadProducts
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const products: Product[] = productsData.products;
+  const dispatch = useDispatch();
+
+  // Get products from Redux state, or use default empty array
+  const products: Product[] = useSelector((state: any) => state.products.products || []);
+  
+  // Find the specific product by ID
   const product = products.find(item => item.id.toString() === id);
+
   const { addToCart } = useContext(CartContext);
   const { checkStock } = useContext(InventoryContext);
   const { showNotification } = useNotification();
 
   const [selectedImage, setSelectedImage] = useState(product?.images[0] || '');
   const [selectedSize, setSelectedSize] = useState<string>('');
+
+  // Fetch products if not in Redux state
+  useEffect(() => {
+    if (!products.length) {
+      dispatch(loadProducts(productsData.products)); // Usar loadProducts para cargar productos
+    }
+  }, [dispatch, products.length]);
 
   if (!product) {
     return <div className="product-detail__notfound">Producto no encontrado</div>;
@@ -36,13 +50,11 @@ const ProductDetail: React.FC = () => {
     }
     addToCart({ product, quantity: 1, size: selectedSize });
     showNotification("Agregado al carrito.", "success");
-    return;
   };
 
-    // Función para formatear el precio con el signo de pesos y separadores de miles
-    const formatPrice = (price: number) => {
-      return `$${price.toLocaleString('es-AR')}`; // Utiliza 'es-AR' para formato con separadores de miles
-    };
+  const formatPrice = (price: number) => {
+    return `$${price.toLocaleString('es-AR')}`; // Utiliza 'es-AR' para formato con separadores de miles
+  };
 
   return (
     <div className="product-detail">

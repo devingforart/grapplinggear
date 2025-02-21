@@ -48,11 +48,11 @@ Contenido:
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import { Provider } from 'react-redux'; // Importa el Provider de Redux
-import store from './store'; // Importa el store de Redux
-import { CartProvider } from './context/CartContext'; // Contexto de Carrito
-import { InventoryProvider } from './context/InventoryContext'; // Contexto de Inventario
-import { NotificationProvider } from './context/NotificationContext'; // Contexto de Notificaciones
+import { Provider } from 'react-redux';
+import store from './store';
+import { CartProvider } from './context/CartContext';
+import { InventoryProvider } from './context/InventoryContext';
+import { NotificationProvider } from './context/NotificationContext';
 import './scss/main.scss';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -84,20 +84,29 @@ Contenido:
 
 Contenido:
 // src/pages/ProductsAdvanced.tsx
-import React, { useState } from 'react';
-import ProductCard from '../components/ProductCard';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Product } from '../types/product';
-import productsData from '../components/products.json';
+import ProductCard from '../components/ProductCard';
+import { loadProducts } from '../store';  // Acción para cargar productos
+import productsData from '../components/products.json';  // Los datos de los productos
 
 const ProductsAdvanced: React.FC = () => {
+  const dispatch = useDispatch();
+  const products: Product[] = useSelector((state: any) => state.products.products || []);  // Asegurándonos de que sea un array vacío si no hay productos aún
+
   const [selectedCategory, setSelectedCategory] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState('default');
 
-  const products: Product[] = productsData.products;
+  useEffect(() => {
+    if (products.length === 0) {
+      dispatch(loadProducts(productsData.products));  // Despachar la acción para cargar los productos
+    }
+  }, [dispatch, products.length]);
+
   const categories = Array.from(new Set(products.map(product => product.category)));
 
-  // Filtrado por categoría y búsqueda
   let filteredProducts = products.filter(product => {
     const matchesCategory = selectedCategory ? product.category === selectedCategory : true;
     const matchesSearch =
@@ -106,7 +115,6 @@ const ProductsAdvanced: React.FC = () => {
     return matchesCategory && matchesSearch;
   });
 
-  // Ordenación según opción seleccionada
   if (sortOption === 'priceAsc') {
     filteredProducts = [...filteredProducts].sort((a, b) => a.price - b.price);
   } else if (sortOption === 'priceDesc') {
@@ -351,25 +359,39 @@ export default Contactanos;
 
 Contenido:
 // src/pages/ProductDetail.tsx
-import React, { useState, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
 import { Product } from '../types/product';
-import productsData from '../components/products.json';
 import FullZoomImage from '../components/FullZoomImage';
 import { CartContext } from '../context/CartContext';
 import { InventoryContext } from '../context/InventoryContext';
 import { useNotification } from '../context/NotificationContext';
+import { loadProducts } from '../store'; // Cambié esto de fetchProducts a loadProducts
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const products: Product[] = productsData.products;
+  const dispatch = useDispatch();
+
+  // Get products from Redux state, or use default empty array
+  const products: Product[] = useSelector((state: any) => state.products.products || []);
+  
+  // Find the specific product by ID
   const product = products.find(item => item.id.toString() === id);
+
   const { addToCart } = useContext(CartContext);
   const { checkStock } = useContext(InventoryContext);
   const { showNotification } = useNotification();
 
   const [selectedImage, setSelectedImage] = useState(product?.images[0] || '');
   const [selectedSize, setSelectedSize] = useState<string>('');
+
+  // Fetch products if not in Redux state
+  useEffect(() => {
+    if (!products.length) {
+      dispatch(loadProducts(productsData.products)); // Usar loadProducts para cargar productos
+    }
+  }, [dispatch, products.length]);
 
   if (!product) {
     return <div className="product-detail__notfound">Producto no encontrado</div>;
@@ -388,13 +410,11 @@ const ProductDetail: React.FC = () => {
     }
     addToCart({ product, quantity: 1, size: selectedSize });
     showNotification("Agregado al carrito.", "success");
-    return;
   };
 
-    // Función para formatear el precio con el signo de pesos y separadores de miles
-    const formatPrice = (price: number) => {
-      return `$${price.toLocaleString('es-AR')}`; // Utiliza 'es-AR' para formato con separadores de miles
-    };
+  const formatPrice = (price: number) => {
+    return `$${price.toLocaleString('es-AR')}`; // Utiliza 'es-AR' para formato con separadores de miles
+  };
 
   return (
     <div className="product-detail">
@@ -460,58 +480,111 @@ export default ProductDetail;
 
 Contenido:
 // src/store/index.ts
+import { createStore, combineReducers } from 'redux';
+import { Product } from '../types/product';
+import prods from '../components/products.json';
 
-import { Product } from "../types/product";
-
-// Definir la interfaz para el estado del carrito
+// Definir las interfaces para el estado del carrito y productos
 interface CartItem {
   id: number;
   quantity: number;
   size: string;
 }
 
-// src/store/index.ts
+interface CartState {
+  cart: CartItem[];
+}
 
-// Definimos la acción ADD_TO_CART
+interface ProductsState {
+  products: Product[];
+}
+
+// Estado inicial de los productos
+const initialProductsState: ProductsState = {
+  products: [],
+};
+
+// Estado inicial del carrito
+const initialCartState: CartState = {
+  cart: [],
+};
+
+// Acciones para el carrito
 export const ADD_TO_CART = 'ADD_TO_CART';
+export const REMOVE_FROM_CART = 'REMOVE_FROM_CART';
+export const LOAD_PRODUCTS = 'LOAD_PRODUCTS'; // Acción para cargar productos
 
 export interface AddToCartAction {
   type: typeof ADD_TO_CART;
   payload: Product[];
 }
 
-// Otros elementos como el reducer y el estado de tu tienda
-
-interface CartState {
-  cart: CartItem[];
-}
-
-// Estado inicial
-const initialState: CartState = {
-  cart: [],
-};
-
-// Acciones
 interface RemoveFromCartAction {
-  type: 'REMOVE_FROM_CART';
+  type: typeof REMOVE_FROM_CART;
   payload: { id: number };
 }
 
-type CartAction = RemoveFromCartAction;
+interface LoadProductsAction {
+  type: typeof LOAD_PRODUCTS;
+  payload: Product[]; // Carga los productos
+}
 
-const cartReducer = (state = initialState, action: CartAction): CartState => {
+type ProductsAction = LoadProductsAction; // Solo necesitamos esta acción aquí
+
+type CartAction = AddToCartAction | RemoveFromCartAction;
+
+// Reducer de productos
+const productsReducer = (state = initialProductsState, action: ProductsAction): ProductsState => {
   switch (action.type) {
-    case 'REMOVE_FROM_CART':
+    case LOAD_PRODUCTS:
       return {
         ...state,
-        cart: state.cart.filter((item) => item.id !== action.payload.id), // Aquí TypeScript puede inferir correctamente el tipo
+        products: action.payload,
       };
     default:
       return state;
   }
 };
 
-export default cartReducer;
+// Reducer del carrito
+const cartReducer = (state = initialCartState, action: CartAction): CartState => {
+  switch (action.type) {
+    case ADD_TO_CART:
+      return {
+        ...state,
+        cart: [...state.cart, ...action.payload.map(product => ({
+          id: product.id,
+          quantity: 1,
+          size: '',
+        }))],
+      };
+    case REMOVE_FROM_CART:
+      return {
+        ...state,
+        cart: state.cart.filter(item => item.id !== action.payload.id),
+      };
+    default:
+      return state;
+  }
+};
+
+// Combine reducers
+const rootReducer = combineReducers({
+  products: productsReducer,
+  cart: cartReducer,
+});
+
+// Crear el store
+const store = createStore(rootReducer);
+
+export default store;
+
+// Nueva acción para cargar productos
+export const loadProducts = (products: Product[]) => ({
+  type: LOAD_PRODUCTS,
+  payload: products,
+});
+
 
 
 --------------------------------------------------------------------------------
@@ -1272,44 +1345,46 @@ export default NotificationContainer;
 /home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/ProductGrid.tsx
 
 Contenido:
+// src/components/ProductGrid.tsx
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import ProductCard from './ProductCard';
 import { useSelector, useDispatch } from 'react-redux';
 import productsData from './products.json'; // Importamos los productos iniciales
 import { Product } from '../types/product';
-import { ADD_TO_CART } from '../store'; // Asegúrate de importar las acciones necesarias
+import { loadProducts } from '../store'; // Acción para cargar productos
 
 const ProductGrid: React.FC = () => {
   const dispatch = useDispatch();
-  const [isVisible, setIsVisible] = useState(true); // Estado para controlar la visibilidad de la flecha
-
-  // Función para verificar el scroll
-  const handleScroll = () => {
-    if (window.scrollY > 100) { // Si el usuario ha hecho scroll hacia abajo más de 100px
-      setIsVisible(false);
-    } else {
-    return
-    }
-  };
+  const [isVisible, setIsVisible] = useState(true);
 
   // Acceder a los productos desde el estado global
-  const products: Product[] = useSelector((state: any) => state.products);
+  const products: Product[] = useSelector((state: any) => state.products.products || []);
+
+  // Filtrar los productos que tienen landing: true
+  const filteredProducts = products.filter((product) => product.landing);
 
   // Si el estado de productos está vacío, inicializamos con los productos desde el archivo JSON
   useEffect(() => {
     if (products.length === 0) {
-      dispatch({ type: ADD_TO_CART, payload: productsData.products }); // Agregar productos al estado global
+      dispatch(loadProducts(productsData.products)); // Disparar la acción para cargar productos
     }
 
     // Agregar el event listener para el scroll
+    const handleScroll = () => {
+      if (window.scrollY > 100) {
+        setIsVisible(false);
+      } else {
+        setIsVisible(true);
+      }
+    };
     window.addEventListener('scroll', handleScroll);
 
     // Limpiar el event listener cuando el componente se desmonte
     return () => window.removeEventListener('scroll', handleScroll);
   }, [dispatch, products.length]);
 
-  if (!products || products.length === 0) {
+  if (!filteredProducts || filteredProducts.length === 0) {
     return <div>Cargando productos...</div>;
   }
 
@@ -1319,10 +1394,10 @@ const ProductGrid: React.FC = () => {
       {isVisible && (
         <motion.div
           className="scroll-arrow"
-          animate={{ y: [0, 10, 0] }} // Hace un pequeño rebote
-          transition={{ repeat: Infinity, duration: 1, ease: "easeInOut" }}
+          animate={{ y: [0, 10, 0] }}
+          transition={{ repeat: Infinity, duration: 1, ease: 'easeInOut' }}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" width="30" height="30">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30">
             <path fill="none" d="M0 0h24v24H0z" />
             <path d="M12 21l-8-8h5V3h6v10h5z" />
           </svg>
@@ -1335,7 +1410,7 @@ const ProductGrid: React.FC = () => {
         initial={{ opacity: 0, y: 50 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.1 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
+        transition={{ duration: 0.8, ease: 'easeOut' }}
       >
         <div className="collection-intro">
           <h2>Nuevos arribos</h2>
@@ -1344,7 +1419,7 @@ const ProductGrid: React.FC = () => {
           </p>
         </div>
         <div className="product-grid-creative__list">
-          {products.map((product) => (
+          {filteredProducts.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
@@ -1653,1828 +1728,6 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
     </InventoryContext.Provider>
   );
 };
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/_variables.scss
-
-Contenido:
-// src/scss/_variables.scss
-$light-colors: (
-  primary: #000000,           // Texto/elementos destacados en negro
-  secondary: #333333,         // Detalles secundarios
-  secondary-hover: #555555,   // Hover sutil
-  background: #ffffff,        // Fondo blanco
-  text: #222222,              // Texto oscuro
-  accent: #d4af37,             // Toque dorado
-  succes:#37d44797 
-);
-
-$dark-colors: (
-  primary: #ffffff,           // Texto/elementos destacados en blanco
-  secondary: #d4af37,         // Acento dorado
-  secondary-hover: #c99a30,   // Hover con variación del acento
-  background: #121212,        // Fondo casi negro
-  text: #f0f0f0,              // Texto claro
-  accent: #d4af37   ,
-  succes:#37cfd4 
-  // Toque dorado
-);
-
-@mixin theme($colors) {
-  --primary-color: #{map-get($colors, primary)};
-  --secondary-color: #{map-get($colors, secondary)};
-  --secondary-hover-color: #{map-get($colors, secondary-hover)};
-  --background-color: #{map-get($colors, background)};
-  --text-color: #{map-get($colors, text)};
-  --accent-color: #{map-get($colors, accent)};
-  --succes-color: #{map-get($colors, succes)};
-
-}
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/_mixins.scss
-
-Contenido:
-// src/scss/_mixins.scss
-@mixin flex-center {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/main.scss
-
-Contenido:
-@use './variables' as *;
-@use './base' as *;
-@use './components/_header' as *;
-@use './components/_hero' as *;
-@use './components/_product' as *;
-@use './components/_product_detaills' as *;
-@use './components/_checkout' as *;
-@use './components/_cart' as *;
-@use './components/_productList' as *;
-@use './components/productAdvanced' as *;
-@use './components/_productGrid' as *;
-@use './components/_contactanos' as *;
-@use './components/_ImageCarousel' as *;
-
-
-
-@use './components/_footer' as *;
-@use './mixins' as *;
-@use './themes' as *; // <-- que esté al final
-
-
-.main-content {
-    margin-top: 80px; // Ajusta según la altura real de tu header
-  }
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/_themes.scss
-
-Contenido:
-// src/scss/_themes.scss
-@use './variables' as vars;
-
-html {
-  @include vars.theme(vars.$light-colors);
-  // Overlay para el Hero en tema claro: degradado de negro
-  --hero-overlay: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(243, 238, 238, 0.3));
-}
-
-html.theme-dark {
-  @include vars.theme(vars.$dark-colors);
-  // Overlay para el Hero en tema oscuro: degradado de blanco para resaltar el contenido
-  --hero-overlay: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.3));
-}
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/_base.scss
-
-Contenido:
-// src/scss/_base.scss
-* {
-  box-sizing: border-box;
-}
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  font-family: 'Roboto', sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: var(--background-color);
-  color: var(--text-color);
-  line-height: 1.6;
-}
-
-a {
-  color: var(--primary-color);
-  text-decoration: none;
-  transition: color 0.3s;
-}
-
-a:hover {
-  color: var(--accent-color);
-}
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_contactanos.scss
-
-Contenido:
-/* src/scss/components/_contactanos.scss */
-.contactanos {
-    padding: 2rem;
-    max-width: 800px;
-    margin: 0 auto;
-    text-align: center;
-  
-    h2 {
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
-      color: var(--primary-color);
-    }
-  
-    p {
-      margin-bottom: 2rem;
-      color: var(--text-color);
-    }
-  
-    &__form {
-      display: grid;
-      grid-gap: 1rem;
-      text-align: left;
-      margin-bottom: 2rem;
-  
-      &-group {
-        display: flex;
-        flex-direction: column;
-  
-        label {
-          margin-bottom: 0.5rem;
-          font-weight: bold;
-          color: var(--primary-color);
-        }
-  
-        input,
-        textarea {
-          padding: 0.75rem;
-          border: 1px solid var(--secondary-hover-color);
-          border-radius: 4px;
-          font-size: 1rem;
-          color: var(--text-color);
-          background-color: var(--background-color);
-        }
-      }
-    }
-  
-    &__submit {
-      background-color: var(--secondary-color);
-      color: var(--background-color);
-      border: none;
-      border-radius: 50px;
-      padding: 0.75rem 2rem;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background-color 0.3s;
-  
-      &:hover {
-        background-color: var(--secondary-hover-color);
-      }
-    }
-  
-    &__info {
-      text-align: left;
-      margin-top: 2rem;
-      color: var(--text-color);
-  
-      h3 {
-        font-size: 1.8rem;
-        margin-bottom: 1rem;
-        color: var(--primary-color);
-      }
-  
-      p {
-        margin-bottom: 0.5rem;
-      }
-    }
-  }
-  
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_ImageCarousel.scss
-
-Contenido:
-.image-carousel {
-  position: relative;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  overflow: hidden;
-  border-radius: 8px;
-  object-fit: fill;
-}
-
-.image-carousel__wrapper {
-
-  overflow: hidden;
-  display: flex;
-  justify-content: center;
-}
-
-.image-carousel__image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: opacity 0.5s ease-in-out;
-}
-
-.image-carousel__indicators {
-  position: absolute;
-  bottom: 15px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 10px;
-}
-
-.indicator {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  
-  &.active {
-    background-color: white;
-    width: 16px;
-    height: 16px;
-  }
-
-  &:hover {
-    background-color: rgba(255, 255, 255, 0.8);
-  }
-}
-
-/* Elimina el estilo para las flechas, si ya no las necesitas */
-.image-carousel__controls {
-  display: none; /* Esto oculta los controles de las flechas */
-}
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_notifications.scss
-
-Contenido:
-// src/scss/components/_notifications.scss
-.notification-container {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  z-index: 1100;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.notification {
-  min-width: 250px;
-  padding: 1rem;
-  border-radius: 4px;
-  color: var(--background-color);
-  font-size: 0.9rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  opacity: 0.95;
-  animation: slideIn 0.3s ease-out;
-}
-
-.notification.info {
-  background-color: #2196F3; /* Azul */
-}
-
-.notification.success {
-  background-color: #4CAF50; /* Verde */
-}
-
-.notification.error {
-  background-color: #F44336; /* Rojo */
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_header.scss
-
-Contenido:
-// src/scss/components/_header.scss
-.header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  padding: 1rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: var(--background-color);
-  backdrop-filter: blur(10px);
-  z-index: 1000;
-  border-bottom: 1px solid var(--secondary-hover-color);
-
-  &__logo a {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: var(--primary-color);
-    letter-spacing: 1px;
-  }
-
-  &__nav {
-    display: flex;
-    gap: 2rem;
-
-    a {
-      font-size: 1rem;
-      font-weight: 500;
-      position: relative;
-      padding: 0.5rem 0;
-
-      &:after {
-        content: '';
-        position: absolute;
-        left: 0;
-        bottom: 0;
-        width: 0;
-        height: 2px;
-        background: var(--accent-color);
-        transition: width 0.3s;
-      }
-
-      &:hover:after {
-        width: 100%;
-      }
-    }
-  }
-
-  &__cart {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    padding: 0.5rem;
-    font-size: 1rem;
-    color: var(--primary-color);
-    text-decoration: none;
-
-    &:hover {
-      color: var(--accent-color);
-    }
-  }
-
-  &__cart-badge {
-    position: absolute;
-    top: -5px;
-    right: -10px;
-    background-color: var(--accent-color);
-    color: var(--background-color);
-    border-radius: 50%;
-    padding: 0.2rem 0.5rem;
-    font-size: 0.75rem;
-    font-weight: bold;
-  }
-
-  // Menú móvil: oculto en desktop
-  &__mobile-menu {
-    display: none;
-  }
-}
-
-/* Estilos para el botón de menú hamburguesa y overlay móvil */
-.mobile-menu__toggle {
-  background: transparent;
-  border: none;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  width: 24px;
-  height: 24px;
-  cursor: pointer;
-
-  .mobile-menu__bar {
-    width: 100%;
-    height: 2px;
-    background-color: var(--primary-color);
-    transition: background-color 0.3s;
-  }
-}
-
-.mobile-menu__overlay {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 100%;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.8); // Aumentamos la opacidad para un mejor contraste
-  display: flex;
-  justify-content: flex-end;
-  z-index: 1100;
-}
-
-
-.mobile-menu__content {
-  background-color: var(--background-color);
-  width: 80%;
-  max-width: 300px;
-  height: 100%;
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-}
-
-.mobile-menu__close {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: transparent;
-  border: none;
-  font-size: 2rem;
-  cursor: pointer;
-  color: var(--primary-color);
-}
-
-.mobile-menu__nav {
-  margin-top: 3rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-
-  a {
-    font-size: 1.2rem;
-    color: var(--primary-color);
-    text-decoration: none;
-    transition: color 0.3s;
-
-    &:hover {
-      color: var(--accent-color);
-    }
-  }
-}
-
-/* Responsive: Muestra menú hamburguesa en tablet y móvil */
-@media (max-width: 768px) {
-  .header {
-    padding: 0.75rem 1.5rem;
-
-    &__nav.desktop {
-      display: none;
-    }
-    &__mobile-menu {
-      display: block;
-    }
-  }
-}
-
-.mobile-menu__overlay {
-  position: fixed;
-  top: 0;
-  left: 0; /* Abarca toda la pantalla */
-  width: 100%;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.8); // Fondo oscuro para mayor contraste
-  display: flex;
-  justify-content: flex-end;
-  z-index: 1100;
-  opacity: 0;
-  animation: fadeIn 0.3s forwards;
-}
-
-@keyframes fadeIn {
-  to {
-    opacity: 1;
-  }
-}
-
-/* ------------------------------
-   PANEL LATERAL DEL MENÚ MÓVIL
---------------------------------*/
-.mobile-menu__content {
-  background-color: var(--background-color);
-  width: 80%;
-  max-width: 300px;
-  height: 100%;
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  transform: translateX(100%);
-  animation: slideIn 0.3s forwards;
-  box-shadow: -4px 0 10px rgba(0, 0, 0, 0.1);
-}
-
-@keyframes slideIn {
-  to {
-    transform: translateX(0);
-  }
-}
-
-/* ------------------------------
-   BOTÓN DE CERRAR
---------------------------------*/
-.mobile-menu__close {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: transparent;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: var(--primary-color);
-  transition: color 0.2s;
-  
-  &:hover {
-    color: var(--accent-color);
-  }
-}
-
-/* ------------------------------
-   NAVEGACIÓN DEL MENÚ MÓVIL
---------------------------------*/
-.mobile-menu__nav {
-  margin-top: 3rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-
-  a {
-    font-size: 1.2rem;
-    font-weight: 500;
-    color: var(--primary-color);
-    text-decoration: none;
-    padding-bottom: 0.2rem;
-    transition: color 0.2s, border-bottom 0.2s;
-
-    &:hover {
-      color: var(--accent-color);
-      border-bottom: 1px solid var(--accent-color);
-    }
-  }
-}
-
-
-// Animaciones de entrada y salida
-@keyframes fadeIn {
-  to { opacity: 1; }
-}
-
-@keyframes fadeOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
-}
-
-@keyframes slideIn {
-  to { transform: translateX(0); }
-}
-
-@keyframes slideOut {
-  from { transform: translateX(0); }
-  to { transform: translateX(100%); }
-}
-
-/* Overlay del menú móvil */
-.mobile-menu__overlay {
-  position: fixed;
-  top: 0;
-  left: 0; /* Abarca toda la pantalla */
-  width: 100%;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.8); // Fondo oscuro para mayor contraste
-  display: flex;
-  justify-content: flex-end;
-  z-index: 1100;
-  opacity: 0;
-  animation: fadeIn 0.3s forwards;
-}
-
-/* Clase para la animación de cierre del overlay */
-.mobile-menu__overlay.closing {
-  animation: fadeOut 0.3s forwards;
-}
-
-/* Panel lateral del menú móvil */
-.mobile-menu__content {
-  background-color: var(--background-color);
-  width: 80%;
-  max-width: 300px;
-  height: 100%;
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  transform: translateX(100%);
-  animation: slideIn 0.3s forwards;
-  box-shadow: -4px 0 10px rgba(0, 0, 0, 0.1);
-}
-
-/* Clase para la animación de cierre del panel */
-.mobile-menu__content.closing {
-  animation: slideOut 0.3s forwards;
-}
-
-/* Botón de cerrar */
-.mobile-menu__close {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: transparent;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: var(--primary-color);
-  transition: color 0.2s;
-  
-  &:hover {
-    color: var(--accent-color);
-  }
-}
-
-/* Navegación del menú móvil */
-.mobile-menu__nav {
-  margin-top: 3rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-
-  a {
-    font-size: 1.2rem;
-    font-weight: 500;
-    color: var(--primary-color);
-    text-decoration: none;
-    padding-bottom: 0.2rem;
-    transition: color 0.2s, border-bottom 0.2s;
-
-    &:hover {
-      color: var(--accent-color);
-      border-bottom: 1px solid var(--accent-color);
-    }
-  }
-}
-
-
-.header__logo a {
-  font-family: 'Montserrat', sans-serif; /* Usamos la fuente Montserrat */
-  font-size: 2rem; /* Tamaño de fuente más grande */
-  font-weight: 600; /* Peso de fuente más grueso */
-  letter-spacing: 2px; /* Espaciado entre letras para un toque moderno */
-  text-transform: uppercase; /* Poner todo en mayúsculas */
-  color: var(--primary-color);
-  transition: all 0.3s ease-in-out; /* Transición suave */
-
-  &:hover {
-    color: var(--accent-color); /* Cambiar color al hacer hover */
-    letter-spacing: 4px; /* Aumentar espaciado al hacer hover */
-  }
-
-  @media (max-width: 768px) {
-    font-size: 1.5rem; /* Reducir tamaño de fuente en pantallas móviles */
-  }
-
-  @media (max-width: 480px) {
-    font-size: 1.2rem; /* Reducir aún más en pantallas muy pequeñas */
-  }
-}
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_hero.scss
-
-Contenido:
-.hero {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  position: relative;
-  background-color: transparent;
-  padding: 0;
-  overflow: hidden;
-
-  .hero__background {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-    display: flex;
-  }
-
-  .hero__content {
-    max-width: 1200px;
-    padding: 20px;
-    margin: 0 auto;
-    z-index: 1;
-
-    .hero__title {
-      font-size: 40px;
-      font-weight: 700;
-      color: var(--primary-color);
-      margin-bottom: 20px;
-      text-transform: uppercase;
-      letter-spacing: 3px;
-      line-height: 1.2;
-
-      @media (max-width: 768px) {
-        font-size: 30px;
-      }
-
-      @media (max-width: 480px) {
-        font-size: 24px;
-      }
-    }
-
-    .hero__subtitle {
-      font-size: 20px;
-      font-weight: 300;
-      color: var(--secondary-color);
-      margin-bottom: 30px;
-      line-height: 1.5;
-
-      @media (max-width: 768px) {
-        font-size: 18px;
-      }
-
-      @media (max-width: 480px) {
-        font-size: 16px;
-      }
-    }
-
-    .hero__cta {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--background-color);
-      background-color: var(--accent-color);
-      padding: 15px 35px;
-      text-decoration: none;
-      border-radius: 50px;
-      display: inline-block;
-      transition: background-color 0.3s ease;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-
-      &:hover {
-        background-color: var(--secondary-hover-color);
-      }
-
-      @media (max-width: 768px) {
-        font-size: 16px;
-        padding: 12px 30px;
-      }
-
-      @media (max-width: 480px) {
-        font-size: 14px;
-        padding: 10px 25px;
-      }
-    }
-  }
-
-  /* --- Mobile Version --- */
-  @media (max-width: 480px) {
-    .hero__background {
-      height: 200px; /* Tamaño reducido de la imagen para móvil */
-    }
-
-    .hero__content {
-      margin-top: 210px; /* Separación de la imagen */
-      padding: 10px;
-    }
-
-    /* Asegurarse de que la imagen ocupe toda la pantalla */
-    .hero__background img {
-      object-fit: cover;
-      width: 100%;
-      height: 100%;
-    }
-  }
-
-  @media (min-width: 481px) and (max-width: 768px) {
-    .hero__background {
-      height: 250px;
-    }
-
-    .hero__title {
-      font-size: 32px;
-    }
-
-    .hero__subtitle {
-      font-size: 18px;
-    }
-
-    .hero__cta {
-      font-size: 16px;
-    }
-  }
-
-  @media (min-width: 769px) {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: flex-start;
-    text-align: left;
-    padding: 80px;
-
-    .hero__background {
-      width: 100%;
-      height: 100vh;
-    }
-
-    .hero__content {
-      max-width: 600px;
-      margin-left: 30px;
-    }
-
-    .hero__title {
-      font-size: 56px;
-      text-transform: capitalize;
-      margin-bottom: 30px;
-    }
-
-    .hero__subtitle {
-      font-size: 24px;
-      margin-bottom: 40px;
-    }
-
-    .hero__cta {
-      font-size: 22px;
-      padding: 20px 50px;
-    }
-  }
-}
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_footer.scss
-
-Contenido:
-// src/scss/components/_footer.scss
-.footer {
-  background-color: var(--primary-color);
-  color: var(--background-color);
-  text-align: center;
-  padding: 1.5rem;
-  font-size: 0.9rem;
-  letter-spacing: 0.5px;
-  border-top: 1px solid var(--secondary-hover-color);
-}
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_product.scss
-
-Contenido:
-// src/scss/components/_product.scss
-
-.product-card {
-  background-color: var(--background-color);
-  border: 1px solid var(--primary-color);
-  border-radius: 10px;
-  overflow: hidden;
-  transition: transform 0.3s, box-shadow 0.3s;
-  max-width: 300px; /* Ancho máximo para evitar que se vea gigante */
-  margin: 1rem auto; /* Centrado y espacio alrededor */
-  display: flex;
-  flex-direction: column;
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  }
-
-  &__image {
-    width: 100%;
-    position: relative;
-    height: 160px; /* Fijamos la altura para la imagen */
-    overflow: hidden;
-  }
-
-  &__info {
-    padding: 0.75rem;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-
-    h3 {
-      margin: 0;
-      font-size: 1.1rem;
-      color: var(--primary-color);
-    }
-
-    p {
-      margin: 0.5rem 0;
-      font-size: 0.85rem;
-      color: var(--text-color);
-    }
-
-    .price {
-      font-weight: bold;
-      margin-bottom: 0.5rem;
-    }
-
-    .btn {
-      display: inline-block;
-      padding: 0.5rem 1rem;
-      background-color: var(--secondary-color);
-      color: var(--background-color);
-      border-radius: 50px;
-      text-transform: uppercase;
-      font-size: 0.8rem;
-      text-decoration: none;
-      transition: background-color 0.3s;
-      margin-top: auto;
-      align-self: flex-start;
-    }
-
-    .btn:hover {
-      background-color: var(--secondary-hover-color);
-    }
-  }
-}
-
-
-.product-grid__list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1rem;
-  padding: 1rem;
-}
-
-
-// src/scss/components/_product.scss
-
-/* Contenedor en grid para la lista de productos */
-.product-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
-  padding: 2rem;
-}
-
-/* Tarjeta de producto */
-.product-card {
-  background-color: var(--background-color);
-  border: 1px solid var(--secondary-hover-color);
-  border-radius: 8px;
-  overflow: hidden;
-  transition: transform 0.3s, box-shadow 0.3s;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  }
-
-  &__link {
-    text-decoration: none;
-    color: inherit;
-  }
-
-  &__image-container {
-    position: relative;
-    overflow: hidden;
-  }
-
-  &__image {
-    width: 100%;
-    height: 180px;
-    object-fit: cover;
-    transition: transform 0.3s;
-  }
-
-  &:hover .product-card__image {
-    transform: scale(1.05);
-  }
-
-  &__overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.4);
-    opacity: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.3s;
-  }
-
-  &:hover .product-card__overlay {
-    opacity: 1;
-  }
-
-  &__quick-view {
-    color: var(--background-color);
-    font-size: 1.1rem;
-    background: var(--accent-color);
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  &__info {
-    padding: 1rem;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-
-  &__title {
-    font-size: 1.2rem;
-    margin-bottom: 0.5rem;
-    color: var(--primary-color);
-  }
-
-  &__description {
-    font-size: 0.9rem;
-    color: var(--text-color);
-    margin-bottom: 1rem;
-  }
-
-  &__price {
-    font-size: 1rem;
-    font-weight: bold;
-    color: var(--accent-color);
-  }
-}
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_themeToggle.scss
-
-Contenido:
-.theme-toggle {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  width: 2.5rem; /* Tamaño más pequeño */
-  height: 2.5rem; /* Tamaño más pequeño */
-  border: none;
-  border-radius: 50%;
-  background-color: var(--accent-color);
-  color: var(--background-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
-  z-index: 4000;
-  
-  /* Diseño tipo "toggle" con un efecto suave al hacer hover */
-  &:hover {
-    background-color: var(--secondary-color);
-    transform: rotate(180deg) scale(1.1);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3); /* Sombra más intensa */
-  }
-
-  /* Icono creativo en lugar de solo texto */
-  svg {
-    width: 1.5rem; /* Icono más pequeño */
-    height: 1.5rem; /* Icono más pequeño */
-    transition: transform 0.3s ease-in-out;
-    
-    /* Efecto cuando se hace hover */
-    &:hover {
-      transform: scale(1.2);
-    }
-  }
-}
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_full_zoom_image.scss
-
-Contenido:
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_cart.scss
-
-Contenido:
-.cart {
-  padding: 3rem 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  gap: 3rem;
-  flex-wrap: wrap;
-  background-color: var(--background-color);
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.cart__title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  text-align: center;
-  margin-bottom: 2rem;
-  color: var(--primary-color);
-  letter-spacing: 1px;
-}
-
-.cart__empty-message {
-  text-align: center;
-  font-size: 1.6rem;
-  color: var(--text-color);
-}
-
-.cart__content {
-  display: flex;
-  gap: 2rem;
-  width: 100%;
-  flex-direction: row;
-
-  .cart__items {
-    flex: 2;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    width: 100%;
-
-    .cart__item {
-      display: flex;
-      gap: 1.5rem;
-      padding: 1.5rem;
-      border-radius: 12px;
-      background-color: var(--background-color);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-      transition: transform 0.2s ease-in-out;
-      border: 1px solid var(--secondary-hover-color);  // Borde individual para cada item
-
-      &:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      }
-
-      .cart__item-image {
-        width: 90px;
-        height: 90px;
-        object-fit: cover;
-        border-radius: 8px;
-      }
-
-      .cart__item-info {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-
-        h3 {
-          font-size: 1.3rem;
-          font-weight: 600;
-          color: var(--primary-color);
-        }
-
-        p {
-          color: var(--text-color);
-          margin: 0.25rem 0;
-        }
-
-        .cart__quantity {
-          display: flex;
-          gap: 1rem;
-          align-items: center;
-
-          input {
-            width: 50px;
-            padding: 0.75rem;
-            text-align: center;
-            border-radius: 8px;
-            border: 1px solid var(--secondary-hover-color);
-            transition: border-color 0.3s ease;
-            background-color: var(--background-color);
-            color: var(--text-color);
-
-            &:focus {
-              outline: none;
-              border-color: var(--accent-color);
-            }
-          }
-
-          .btn {
-            background-color: var(--accent-color);
-            color: var(--background-color);
-            padding: 0.75rem 1.25rem;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: none;
-            font-weight: 600;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-
-            &:hover {
-              background-color: var(--secondary-hover-color);
-              box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-              transform: translateY(-3px);
-            }
-
-            &:active {
-              background-color: var(--primary-color);
-              transform: translateY(2px);
-              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  .cart__summary {
-    flex: 1;
-    border-radius: 12px;
-    padding: 1.5rem;
-    background-color: var(--background-color);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    border: 1px solid var(--secondary-hover-color);  // Borde para el resumen del carrito
-
-    h3 {
-      margin: 0;
-      color: var(--primary-color);
-      font-weight: 600;
-    }
-
-    .cart__subtotal {
-      margin: 1rem 0;
-      font-size: 1.4rem;
-      color: var(--text-color);
-    }
-
-    .cart__actions {
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-      margin-top: 1.5rem;
-
-      .btn {
-        width: 100%;
-        padding: 0.75rem;
-        background-color: var(--accent-color);
-        color: var(--background-color);
-        border-radius: 50px;
-        text-transform: uppercase;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-
-        &:hover {
-          background-color: var(--secondary-hover-color);
-          box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-          transform: translateY(-3px);
-        }
-
-        &:active {
-          background-color: var(--primary-color);
-          transform: translateY(2px);
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-      }
-
-      .cart__checkout-button {
-        padding: 0.75rem 2rem;
-        background-color: var(--primary-color);
-        color: var(--background-color);
-        font-size: 1.2rem;
-        font-weight: 600;
-        border: none;
-        border-radius: 50px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-transform: uppercase;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-
-        &:hover {
-          background-color: var(--secondary-hover-color);
-          transform: scale(1.05);
-          box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        &:active {
-          transform: scale(1);
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-        }
-      }
-    }
-  }
-}
-
-@media (max-width: 768px) {
-  .cart__content {
-    flex-direction: column;
-    gap: 2rem;
-  }
-
-  .cart__summary {
-    order: -1; /* Coloca el resumen al principio en pantallas pequeñas */
-  }
-}
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_productAdvanced.scss
-
-Contenido:
-.products-advanced {
-  display: grid;
-  grid-template-columns: 250px 1fr;
-  gap: 2rem;
-  padding: 2rem;
-
-  .sidebar {
-    background-color: var(--background-color);
-    border: 1px solid var(--secondary-hover-color);
-    border-radius: 8px;
-    padding: 1.5rem;
-    height: fit-content;
-
-    h3 {
-      margin-bottom: 1rem;
-      color: var(--primary-color);
-      font-size: 1.25rem;
-    }
-
-    .filter-section {
-      margin-bottom: 1.5rem;
-
-      label {
-        display: block;
-        font-weight: bold;
-        margin-bottom: 0.5rem;
-        color: var(--primary-color);
-      }
-
-      ul {
-        list-style: none;
-        padding: 0;
-
-        li {
-          padding: 0.5rem;
-          cursor: pointer;
-          border-radius: 4px;
-          transition: background-color 0.3s, color 0.3s;
-
-          &:hover,
-          &.active {
-            background-color: var(--accent-color);
-            color: var(--background-color);
-          }
-        }
-      }
-
-      input,
-      select {
-        width: 100%;
-        padding: 0.5rem;
-        border: 1px solid var(--secondary-hover-color);
-        border-radius: 4px;
-        background-color: var(--background-color);
-        color: var(--text-color);
-      }
-    }
-  }
-
-  .products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1.5rem;
-  }
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    .sidebar {
-      margin-bottom: 1.5rem;
-    }
-  }
-}
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_productGrid.scss
-
-Contenido:
-.product-grid-creative {
-    padding: 4rem 2rem;
-    opacity: 0;
-    transform: translateY(50px);
-    transition: all 0.8s ease-out;
-  
-    &.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  
-    .collection-intro {
-      text-align: center;
-      margin-bottom: 2rem;
-    
-      h2,
-      p {
-        color: var(--primary-color);
-      }
-    }
-    
-    html.theme-dark .collection-intro {
-      h2,
-      p {
-        color: var(--primary-color);
-      }
-    }
-      
-    &__list {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.5rem;
-    }
-  }
-  .scroll-arrow {
-    position: fixed;  /* Esto fija la flecha en la pantalla */
-    bottom: 10%;         /* Posiciona la flecha en el centro vertical */
-    left: 50vw;        /* Posiciona la flecha en el centro horizontal */
-    transform: translate(-50%, -50%);  /* Centra perfectamente */
-    cursor: pointer;
-  }
-
-  
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_productList.scss
-
-Contenido:
-// src/scss/components/_productList.scss
-
-.product-list {
-  padding: 2rem;
-
-  &__controls {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-
-    @media (min-width: 768px) {
-      flex-direction: row;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .product-list__search-sort {
-      display: flex;
-      gap: 1rem;
-
-      input {
-        padding: 0.75rem;
-        border: 1px solid var(--secondary-hover-color);
-        border-radius: 4px;
-        flex: 1;
-      }
-
-      select {
-        padding: 0.75rem;
-        border: 1px solid var(--secondary-hover-color);
-        border-radius: 4px;
-      }
-    }
-  }
-
-  &__grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 2rem;
-  }
-}
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_checkout.scss
-
-Contenido:
-.checkout {
-    padding: 2rem;
-    max-width: 600px;
-    margin: 0 auto;
-    background-color: var(--background-color);
-    border: 1px solid var(--secondary-hover-color);
-    border-radius: 10px;
-  
-    h2 {
-      text-align: center;
-      margin-bottom: 2rem;
-      color: var(--primary-color);
-    }
-  
-    &__form {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-  
-      .checkout__group {
-        display: flex;
-        flex-direction: column;
-  
-        label {
-          margin-bottom: 0.5rem;
-          font-weight: bold;
-          color: var(--primary-color);
-        }
-  
-        input,
-        select {
-          padding: 0.75rem;
-          border: 1px solid var(--secondary-hover-color);
-          border-radius: 5px;
-          font-size: 1rem;
-          color: var(--text-color);
-          background-color: var(--background-color);
-          transition: border-color 0.3s;
-        }
-  
-        input:focus,
-        select:focus {
-          outline: none;
-          border-color: var(--accent-color);
-        }
-      }
-  
-      .checkout__submit {
-        margin-top: 1rem;
-        background-color: var(--secondary-color);
-        color: var(--background-color);
-        border: none;
-        border-radius: 50px;
-        padding: 1rem;
-        text-transform: uppercase;
-        font-weight: bold;
-        transition: background-color 0.3s;
-        cursor: pointer;
-      }
-  
-      .checkout__submit:hover {
-        background-color: var(--secondary-hover-color);
-      }
-    }
-  }
-  
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_product_detaills.scss
-
-Contenido:
-.product-detail {
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  font-family: 'Roboto', sans-serif;
-
-  &__container {
-    display: flex;
-    gap: 2rem;
-    align-items: flex-start;
-    flex-wrap: wrap;
-    background: var(--background-color);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    padding: 2rem;
-    border-radius: 8px;
-  }
-
-  &__viewer {
-    flex: 1 1 500px;
-    max-width: 500px;
-  }
-
-  &__info {
-    flex: 1 1 300px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-
-    & > * + * {
-      margin-top: 1rem;
-    }
-  }
-
-  &__title {
-    font-size: 2rem;
-    color: var(--primary-color);
-    margin: 0;
-  }
-
-  &__description {
-    font-size: 1rem;
-    color: var(--text-color);
-    line-height: 1.5;
-  }
-
-  &__price {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--primary-color);
-  }
-
-  &__extra {
-    display: flex;
-    gap: 2rem;
-    margin: 1rem 0;
-  }
-
-  &__sizes,
-  &__stock {
-    flex: 1;
-  }
-
-  &__subtitle {
-    font-size: 1.1rem;
-    color: var(--primary-color);
-    margin-bottom: 0.5rem;
-  }
-
-  &__size-list {
-    list-style: none;
-    padding: 0;
-    display: flex;
-    gap: 0.5rem;
-    margin: 0;
-  }
-
-  &__size-item {
-    padding: 0.5rem 1rem;
-    border: 1px solid var(--secondary-hover-color);
-    border-radius: 4px;
-    font-size: 0.9rem;
-    color: var(--text-color);
-  }
-
-  &__stock-info {
-    font-size: 0.9rem;
-    color: var(--text-color);
-  }
-
-  &__add-to-cart {
-    padding: 0.75rem 1.5rem;
-    background-color: var(--secondary-color);
-    color: var(--background-color);
-    border: none;
-    border-radius: 50px;
-    text-transform: uppercase;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    align-self: start;
-
-    &:hover {
-      background-color: var(--secondary-hover-color);
-    }
-  }
-
-  &__gallery {
-    display: flex;
-    gap: 1rem;
-    margin-top: 2rem;
-    justify-content: center;
-  }
-
-  &__thumb {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    border: 2px solid transparent;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: border-color 0.3s;
-
-    &.selected {
-      border-color: var(--accent-color);
-    }
-  }
-  .product-detail__size-item {
-    cursor: pointer;
-    padding: 0.5rem 1rem;
-    border: 1px solid var(--secondary-hover-color);
-    border-radius: 4px;
-    transition: background-color 0.3s;
-  }
-  
-  .product-detail__size-item.selected {
-    background-color: var(--accent-color);
-    color: var(--background-color);
-  }
-  
-  &__notfound {
-    text-align: center;
-    font-size: 1.5rem;
-    color: var(--text-color);
-    margin: 2rem 0;
-  }
-}
-
-/* Ajustes para pantallas hasta 768px (tablets) */
-@media (max-width: 768px) {
-  .product-detail {
-    padding: 1rem;
-  }
-  .product-detail__container {
-    flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
-  }
-  .product-detail__viewer,
-  .product-detail__info {
-    flex: 1 1 100%;
-    max-width: 100%;
-  }
-  .product-detail__title {
-    font-size: 1.5rem;
-  }
-  .product-detail__description {
-    font-size: 0.9rem;
-  }
-  .product-detail__price {
-    font-size: 1.2rem;
-  }
-  .product-detail__extra {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  .product-detail__gallery {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-  .product-detail__thumb {
-    width: 60px;
-    height: 60px;
-  }
-}
-
-/* Enfocándonos en móviles (hasta 480px) */
-@media (max-width: 480px) {
-  /* Asegura que el contenedor del viewer ocupe el ancho completo sin causar scroll */
-  .product-detail__viewer {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 auto;
-  }
-  
-  /* Forzar que el contenedor de FullZoomImage se ajuste al ancho del dispositivo */
-  .full-zoom-image-container {
-    width: 100% !important;
-    height: auto !important;
-  }
-
-  /* Asegura que la imagen dentro de FullZoomImage se ajuste correctamente */
-  .full-zoom-image-container img {
-    width: 100%;
-    height: auto;
-    object-fit: cover;
-  }
-}
 
 
 --------------------------------------------------------------------------------

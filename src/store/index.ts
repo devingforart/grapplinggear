@@ -1,8 +1,9 @@
 // src/store/index.ts
-import { createStore } from 'redux';
-import { Product } from "../types/product";
+import { createStore, combineReducers } from 'redux';
+import { Product } from '../types/product';
+import prods from '../components/products.json';
 
-// Definir la interfaz para el estado del carrito
+// Definir las interfaces para el estado del carrito y productos
 interface CartItem {
   id: number;
   quantity: number;
@@ -13,48 +14,93 @@ interface CartState {
   cart: CartItem[];
 }
 
-// Estado inicial
-const initialState: CartState = {
+interface ProductsState {
+  products: Product[];
+}
+
+// Estado inicial de los productos
+const initialProductsState: ProductsState = {
+  products: [],
+};
+
+// Estado inicial del carrito
+const initialCartState: CartState = {
   cart: [],
 };
 
-// Acciones
-export const ADD_TO_CART = 'ADD_TO_CART'; // Exporta la constante
+// Acciones para el carrito
+export const ADD_TO_CART = 'ADD_TO_CART';
+export const REMOVE_FROM_CART = 'REMOVE_FROM_CART';
+export const LOAD_PRODUCTS = 'LOAD_PRODUCTS'; // Acción para cargar productos
+
 export interface AddToCartAction {
   type: typeof ADD_TO_CART;
   payload: Product[];
 }
 
 interface RemoveFromCartAction {
-  type: 'REMOVE_FROM_CART';
+  type: typeof REMOVE_FROM_CART;
   payload: { id: number };
 }
 
-type CartAction = AddToCartAction | RemoveFromCartAction; // Asegúrate de incluir AddToCartAction
+interface LoadProductsAction {
+  type: typeof LOAD_PRODUCTS;
+  payload: Product[]; // Carga los productos
+}
 
-// Reducer
-const cartReducer = (state = initialState, action: CartAction): CartState => {
+type ProductsAction = LoadProductsAction; // Solo necesitamos esta acción aquí
+
+type CartAction = AddToCartAction | RemoveFromCartAction;
+
+// Reducer de productos
+const productsReducer = (state = initialProductsState, action: ProductsAction): ProductsState => {
   switch (action.type) {
-    case ADD_TO_CART:
+    case LOAD_PRODUCTS:
       return {
         ...state,
-        cart: [...state.cart, ...action.payload.map(product => ({
-          id: product.id,
-          quantity: 1, // Por ejemplo, por defecto una unidad
-          size: '', // Asumimos un tamaño vacío, ajusta según tus necesidades
-        }))],
-      };
-    case 'REMOVE_FROM_CART':
-      return {
-        ...state,
-        cart: state.cart.filter((item) => item.id !== action.payload.id),
+        products: action.payload,
       };
     default:
       return state;
   }
 };
 
-// Crear y exportar el store con los tipos correctos
-const store = createStore(cartReducer);
+// Reducer del carrito
+const cartReducer = (state = initialCartState, action: CartAction): CartState => {
+  switch (action.type) {
+    case ADD_TO_CART:
+      return {
+        ...state,
+        cart: [...state.cart, ...action.payload.map(product => ({
+          id: product.id,
+          quantity: 1,
+          size: '',
+        }))],
+      };
+    case REMOVE_FROM_CART:
+      return {
+        ...state,
+        cart: state.cart.filter(item => item.id !== action.payload.id),
+      };
+    default:
+      return state;
+  }
+};
+
+// Combine reducers
+const rootReducer = combineReducers({
+  products: productsReducer,
+  cart: cartReducer,
+});
+
+// Crear el store
+const store = createStore(rootReducer);
 
 export default store;
+
+// Nueva acción para cargar productos
+export const loadProducts = (products: Product[]) => ({
+  type: LOAD_PRODUCTS,
+  payload: products,
+});
+

@@ -15,7 +15,7 @@ direx = [
 "/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/_variables.scss"
 ]
 
-file_extensions = ['scss','tsx','ts' ]
+file_extensions = ['tsx','ts' ]
 output_file = '_connections.txt'
 
 def is_code_file(file_path):

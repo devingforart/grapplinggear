@@ -1,18 +1,27 @@
 // src/pages/ProductsAdvanced.tsx
-import React, { useState } from 'react';
-import ProductCard from '../components/ProductCard';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Product } from '../types/product';
-import productsData from '../components/products.json';
+import ProductCard from '../components/ProductCard';
+import { loadProducts } from '../store';  // Acción para cargar productos
+import productsData from '../components/products.json';  // Los datos de los productos
 
 const ProductsAdvanced: React.FC = () => {
+  const dispatch = useDispatch();
+  const products: Product[] = useSelector((state: any) => state.products.products || []);  // Asegurándonos de que sea un array vacío si no hay productos aún
+
   const [selectedCategory, setSelectedCategory] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState('default');
 
-  const products: Product[] = productsData.products;
+  useEffect(() => {
+    if (products.length === 0) {
+      dispatch(loadProducts(productsData.products));  // Despachar la acción para cargar los productos
+    }
+  }, [dispatch, products.length]);
+
   const categories = Array.from(new Set(products.map(product => product.category)));
 
-  // Filtrado por categoría y búsqueda
   let filteredProducts = products.filter(product => {
     const matchesCategory = selectedCategory ? product.category === selectedCategory : true;
     const matchesSearch =
@@ -21,7 +30,6 @@ const ProductsAdvanced: React.FC = () => {
     return matchesCategory && matchesSearch;
   });
 
-  // Ordenación según opción seleccionada
   if (sortOption === 'priceAsc') {
     filteredProducts = [...filteredProducts].sort((a, b) => a.price - b.price);
   } else if (sortOption === 'priceDesc') {
