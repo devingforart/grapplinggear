@@ -1,7 +1,7 @@
-// src/components/Cart.tsx
 import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { CartContext } from '../context/CartContext';
+import { motion } from 'framer-motion';
 
 const Cart: React.FC = () => {
   const { cartItems, removeFromCart, updateCartItem, clearCart } = useContext(CartContext);
@@ -21,9 +21,17 @@ const Cart: React.FC = () => {
 
   return (
     <div className="cart">
-      <h2>Carrito de Compras</h2>
+      <motion.h2 
+        className="cart__title"
+        initial={{ opacity: 0 }} 
+        animate={{ opacity: 1 }} 
+        transition={{ duration: 0.5 }}
+      >
+        Carrito
+      </motion.h2>
+
       {cartItems.length === 0 ? (
-        <p>No hay productos en el carrito.</p>
+        <p className="cart__empty-message">No hay productos en el carrito.</p>
       ) : (
         <div className="cart__content">
           <div className="cart__items">
@@ -38,12 +46,8 @@ const Cart: React.FC = () => {
                   <h3>{item.product.name}</h3>
                   <p>Talle: {item.size}</p>
                   <p>Precio: ${item.product.price}</p>
-                  <div>
-                    <label htmlFor={`quantity-${item.product.id}-${item.size}`}>
-                      Cantidad:
-                    </label>
+                  <div className="cart__quantity">
                     <input
-                      id={`quantity-${item.product.id}-${item.size}`}
                       type="number"
                       value={item.quantity}
                       min="1"
@@ -54,11 +58,10 @@ const Cart: React.FC = () => {
                           parseInt(e.target.value)
                         )
                       }
-                      style={{ width: '60px', marginRight: '1rem' }}
                     />
                     <button
                       onClick={() => removeFromCart(item.product.id, item.size)}
-                      className="btn"
+                      className="btn cart__remove-button"
                     >
                       Eliminar
                     </button>
@@ -69,19 +72,18 @@ const Cart: React.FC = () => {
           </div>
           <div className="cart__summary">
             <h3>Resumen</h3>
-            <p>Subtotal: ${subtotal}</p>
-            <div style={{ marginBottom: '1rem' }}>
+            <p className="cart__subtotal">Subtotal: ${subtotal}</p>
+            <div className="cart__actions">
               <button
                 onClick={clearCart}
-                className="btn"
-                style={{ backgroundColor: 'red', color: '#fff' }}
+                className="btn cart__clear-button"
               >
-                Vaciar Carrito
+                Vaciar
               </button>
+              <Link to="/checkout" className="btn cart__checkout-button">
+                Checkout
+              </Link>
             </div>
-            <Link to="/checkout" className="btn">
-              Proceder al Checkout
-            </Link>
           </div>
         </div>
       )}

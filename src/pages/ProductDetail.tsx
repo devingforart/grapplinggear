@@ -35,6 +35,8 @@ const ProductDetail: React.FC = () => {
       return;
     }
     addToCart({ product, quantity: 1, size: selectedSize });
+    showNotification("Agregado al carrito.", "success");
+    return;
   };
 
   return (

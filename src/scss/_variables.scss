@@ -5,7 +5,8 @@ $light-colors: (
   secondary-hover: #555555,   // Hover sutil
   background: #ffffff,        // Fondo blanco
   text: #222222,              // Texto oscuro
-  accent: #d4af37             // Toque dorado
+  accent: #d4af37,             // Toque dorado
+  succes:#37d44797 
 );
 
 $dark-colors: (
@@ -14,7 +15,9 @@ $dark-colors: (
   secondary-hover: #c99a30,   // Hover con variación del acento
   background: #121212,        // Fondo casi negro
   text: #f0f0f0,              // Texto claro
-  accent: #d4af37             // Toque dorado
+  accent: #d4af37   ,
+  succes:#37cfd4 
+  // Toque dorado
 );
 
 @mixin theme($colors) {
@@ -24,4 +27,6 @@ $dark-colors: (
   --background-color: #{map-get($colors, background)};
   --text-color: #{map-get($colors, text)};
   --accent-color: #{map-get($colors, accent)};
+  --succes-color: #{map-get($colors, succes)};
+
 }

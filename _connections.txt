@@ -1,1688 +1,455 @@
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/App.tsx
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_cart.scss
 
 Contenido:
-// src/App.tsx
-import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Home from './pages/Home';
-import ProductsAdvanced from './pages/ProductsAdvanced';
-import ProductDetail from './pages/ProductDetail';
-import Cart from './components/Cart';
-import Checkout from './components/Checkout';
-import Contactanos from './pages/Contactanos'; // Importa el nuevo componente
-import ThemeToggle from './components/ThemeToggle';
-import Header from './components/Header';
-import NotificationContainer from './components/NotificationContainer';
+.cart {
+  padding: 3rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  gap: 3rem;
+  flex-wrap: wrap;
 
-const App: React.FC = () => {
-  return (
-    <BrowserRouter>
-      <Header />
-      <ThemeToggle />
-      <NotificationContainer />
-      <div className="main-content">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/productos" element={<ProductsAdvanced />} />
-          <Route path="/producto/:id" element={<ProductDetail />} />
-          <Route path="/carrito" element={<Cart />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/contactanos" element={<Contactanos />} />
-        </Routes>
-      </div>
-    </BrowserRouter>
-  );
-};
-
-export default App;
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/main.tsx
-
-Contenido:
-// src/main.tsx
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
-import { CartProvider } from './context/CartContext';
-import { InventoryProvider } from './context/InventoryContext';
-import { NotificationProvider } from './context/NotificationContext';
-import './scss/main.scss';
-
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <InventoryProvider>
-      <CartProvider>
-        <NotificationProvider>
-          <App />
-        </NotificationProvider>
-      </CartProvider>
-    </InventoryProvider>
-  </React.StrictMode>
-);
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/pages/ProductsAdvanced.tsx
-
-Contenido:
-// src/pages/ProductsAdvanced.tsx
-import React, { useState } from 'react';
-import ProductCard from '../components/ProductCard';
-import { Product } from '../types/product';
-import productsData from '../components/products.json';
-
-const ProductsAdvanced: React.FC = () => {
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortOption, setSortOption] = useState('default');
-
-  const products: Product[] = productsData.products;
-  const categories = Array.from(new Set(products.map(product => product.category)));
-
-  // Filtrado por categoría y búsqueda
-  let filteredProducts = products.filter(product => {
-    const matchesCategory = selectedCategory ? product.category === selectedCategory : true;
-    const matchesSearch =
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
-
-  // Ordenación según opción seleccionada
-  if (sortOption === 'priceAsc') {
-    filteredProducts = [...filteredProducts].sort((a, b) => a.price - b.price);
-  } else if (sortOption === 'priceDesc') {
-    filteredProducts = [...filteredProducts].sort((a, b) => b.price - a.price);
-  } else if (sortOption === 'nameAsc') {
-    filteredProducts = [...filteredProducts].sort((a, b) => a.name.localeCompare(b.name));
-  } else if (sortOption === 'nameDesc') {
-    filteredProducts = [...filteredProducts].sort((a, b) => b.name.localeCompare(a.name));
+  .cart__title {
+    font-size: 3rem;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--primary-color);
+    letter-spacing: 1px;
   }
 
-  return (
-    <div className="products-advanced">
-      <aside className="sidebar">
-        <h3>Filtrar</h3>
-        <div className="filter-section">
-          <label>Categorías</label>
-          <ul>
-            <li onClick={() => setSelectedCategory('')} className={!selectedCategory ? 'active' : ''}>
-              Todos
-            </li>
-            {categories.map(cat => (
-              <li key={cat} onClick={() => setSelectedCategory(cat)} className={selectedCategory === cat ? 'active' : ''}>
-                {cat}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="filter-section">
-          <label>Buscar</label>
-          <input
-            type="text"
-            placeholder="Buscar productos..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <div className="filter-section">
-          <label>Ordenar por</label>
-          <select value={sortOption} onChange={e => setSortOption(e.target.value)}>
-            <option value="default">Relevancia</option>
-            <option value="priceAsc">Precio: menor a mayor</option>
-            <option value="priceDesc">Precio: mayor a menor</option>
-            <option value="nameAsc">Nombre: A-Z</option>
-            <option value="nameDesc">Nombre: Z-A</option>
-          </select>
-        </div>
-      </aside>
-      <main className="products-grid">
-        {filteredProducts.map(product => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </main>
-    </div>
-  );
-};
-
-export default ProductsAdvanced;
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/pages/Home.tsx
-
-Contenido:
-// src/pages/Home.tsx
-import React from 'react';
-import Hero from '../components/Hero';
-import ProductGrid from '../components/ProductGrid';
-import Footer from '../components/Footer';
-import productsData from '../components/products.json'; // Importar los productos
-
-const Home: React.FC = () => {
-  // Filtrar los productos nuevos
-  const newProducts = productsData.products.filter(product => product.new);
-
-  // Extraer solo las imágenes para el carrusel
-  const newProductImages = newProducts.flatMap(product => product.images);
-
-  return (
-    <div className="home">
-      <Hero images={newProductImages} />
-      <ProductGrid />
-      <Footer />
-    </div>
-  );
-};
-
-export default Home;
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/pages/Products.tsx
-
-Contenido:
-// src/pages/Products.tsx
-import React from 'react';
-import ProductList from '../components/ProductList';
-
-const Products: React.FC = () => {
-  return (
-    <div className="products">
-      <h2>Productos</h2>
-      <ProductList />
-    </div>
-  );
-};
-
-export default Products;
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/pages/Contactanos.tsx
-
-Contenido:
-// src/pages/Contactanos.tsx
-import React, { useState } from 'react';
-import '../scss/components/_contactanos.scss'; // Asegúrate de tener los estilos correspondientes
-
-const Contactanos: React.FC = () => {
-  const [formData, setFormData] = useState({
-    nombre: '',
-    email: '',
-    telefono: '',
-    asunto: '',
-    mensaje: '',
-  });
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Validación básica: asegúrate de que los campos obligatorios estén completos
-    if (!formData.nombre || !formData.email || !formData.mensaje) {
-      alert("Por favor, completa los campos obligatorios.");
-      return;
-    }
-    // Aquí implementarías la lógica para enviar el mensaje a tu backend o servicio de correo
-    console.log("Mensaje enviado:", formData);
-    alert("Tu mensaje ha sido enviado. Nos pondremos en contacto contigo a la brevedad.");
-    setFormData({
-      nombre: '',
-      email: '',
-      telefono: '',
-      asunto: '',
-      mensaje: '',
-    });
-  };
-
-  return (
-    <div className="contactanos">
-      <h2>Contáctanos</h2>
-      <p>
-        ¿Tienes alguna consulta o necesitas más información? Completa el siguiente formulario y nos pondremos en contacto contigo.
-      </p>
-      <form className="contactanos__form" onSubmit={handleSubmit}>
-        <div className="contactanos__form-group">
-          <label htmlFor="nombre">Nombre Completo *</label>
-          <input
-            type="text"
-            id="nombre"
-            name="nombre"
-            value={formData.nombre}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="contactanos__form-group">
-          <label htmlFor="email">Correo Electrónico *</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="contactanos__form-group">
-          <label htmlFor="telefono">Teléfono</label>
-          <input
-            type="tel"
-            id="telefono"
-            name="telefono"
-            value={formData.telefono}
-            onChange={handleChange}
-          />
-        </div>
-        <div className="contactanos__form-group">
-          <label htmlFor="asunto">Asunto</label>
-          <input
-            type="text"
-            id="asunto"
-            name="asunto"
-            value={formData.asunto}
-            onChange={handleChange}
-          />
-        </div>
-        <div className="contactanos__form-group">
-          <label htmlFor="mensaje">Mensaje *</label>
-          <textarea
-            id="mensaje"
-            name="mensaje"
-            rows={5}
-            value={formData.mensaje}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <button type="submit" className="btn contactanos__submit">
-          Enviar Mensaje
-        </button>
-      </form>
-      <div className="contactanos__info">
-        <h3>Información de Contacto</h3>
-        <p>
-          <strong>Teléfono:</strong> (123) 456-7890
-        </p>
-        <p>
-          <strong>Email:</strong> info@grapplinggear.com
-        </p>
-        <p>
-          <strong>Dirección:</strong> Calle Falsa 123, Ciudad, País
-        </p>
-      </div>
-    </div>
-  );
-};
-
-export default Contactanos;
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/pages/ProductDetail.tsx
-
-Contenido:
-// src/pages/ProductDetail.tsx
-import React, { useState, useContext } from 'react';
-import { useParams } from 'react-router-dom';
-import { Product } from '../types/product';
-import productsData from '../components/products.json';
-import FullZoomImage from '../components/FullZoomImage';
-import { CartContext } from '../context/CartContext';
-import { InventoryContext } from '../context/InventoryContext';
-import { useNotification } from '../context/NotificationContext';
-
-const ProductDetail: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const products: Product[] = productsData.products;
-  const product = products.find(item => item.id.toString() === id);
-  const { addToCart } = useContext(CartContext);
-  const { checkStock } = useContext(InventoryContext);
-  const { showNotification } = useNotification();
-
-  const [selectedImage, setSelectedImage] = useState(product?.images[0] || '');
-  const [selectedSize, setSelectedSize] = useState<string>('');
-
-  if (!product) {
-    return <div className="product-detail__notfound">Producto no encontrado</div>;
+  .cart__empty-message {
+    text-align: center;
+    font-size: 1.5rem;
+    color: var(--text-color);
   }
 
-  const availableStock = selectedSize ? checkStock(product.id, selectedSize) : 0;
-
-  const handleAddToCart = () => {
-    if (!selectedSize) {
-      showNotification("Por favor, selecciona un talle.", "error");
-      return;
-    }
-    if (availableStock < 1) {
-      showNotification("Lo sentimos, no hay stock disponible para el talle seleccionado.", "error");
-      return;
-    }
-    addToCart({ product, quantity: 1, size: selectedSize });
-  };
-
-  return (
-    <div className="product-detail">
-      <div className="product-detail__container">
-        <div className="product-detail__viewer">
-          <FullZoomImage
-            src={selectedImage}
-            alt={product.name}
-            thumbnailWidth={500}
-            thumbnailHeight={400}
-          />
-        </div>
-        <div className="product-detail__info">
-          <h2 className="product-detail__title">{product.name}</h2>
-          <p className="product-detail__description">{product.description}</p>
-          <p className="product-detail__price">${product.price}</p>
-          <div className="product-detail__extra">
-            <div className="product-detail__sizes">
-              <h3 className="product-detail__subtitle">Talles Disponibles</h3>
-              <ul className="product-detail__size-list">
-                {product.availableSizes.map((size, index) => (
-                  <li 
-                    key={index} 
-                    className={`product-detail__size-item ${selectedSize === size ? 'selected' : ''}`}
-                    onClick={() => setSelectedSize(size)}
-                  >
-                    {size}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-          <button 
-            className="btn product-detail__add-to-cart"
-            onClick={handleAddToCart}
-            disabled={!selectedSize || availableStock < 1}
-          >
-            Añadir al Carrito
-          </button>
-        </div>
-      </div>
-      <div className="product-detail__gallery">
-        {product.images.map((img, index) => (
-          <img
-            key={index}
-            src={img}
-            alt={`${product.name} ${index + 1}`}
-            className={`product-detail__thumb ${selectedImage === img ? 'selected' : ''}`}
-            onClick={() => setSelectedImage(img)}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};
-
-export default ProductDetail;
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/CategoryFilter.tsx
-
-Contenido:
-// src/components/CategoryFilter.tsx
-import React from 'react';
-
-interface CategoryFilterProps {
-  categories: string[];
-  selectedCategory: string;
-  onSelectCategory: (category: string) => void;
-}
-
-const CategoryFilter: React.FC<CategoryFilterProps> = ({ categories, selectedCategory, onSelectCategory }) => {
-  return (
-    <div className="category-filter">
-      <button 
-        onClick={() => onSelectCategory('')}
-        className={!selectedCategory ? 'active' : ''}
-      >
-        Todos
-      </button>
-      {categories.map(category => (
-        <button 
-          key={category}
-          onClick={() => onSelectCategory(category)}
-          className={selectedCategory === category ? 'active' : ''}
-        >
-          {category}
-        </button>
-      ))}
-    </div>
-  );
-};
-
-export default CategoryFilter;
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/ProductList.tsx
-
-Contenido:
-// src/components/ProductList.tsx
-import React, { useState } from 'react';
-import ProductCard from './ProductCard';
-import { Product } from '../types/product';
-import productsData from './products.json';
-import CategoryFilter from './CategoryFilter';
-
-const ProductList: React.FC = () => {
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortOption, setSortOption] = useState('default');
-
-  const products: Product[] = productsData.products;
-
-  // Obtén la lista única de categorías
-  const categories = Array.from(new Set(products.map(product => product.category)));
-
-  // Filtra los productos según categoría y búsqueda
-  let filteredProducts = products.filter(product => {
-    const matchesCategory = selectedCategory ? product.category === selectedCategory : true;
-    const matchesSearch =
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
-
-  // Ordena los productos según la opción seleccionada
-  if (sortOption === 'priceAsc') {
-    filteredProducts = [...filteredProducts].sort((a, b) => a.price - b.price);
-  } else if (sortOption === 'priceDesc') {
-    filteredProducts = [...filteredProducts].sort((a, b) => b.price - a.price);
-  } else if (sortOption === 'nameAsc') {
-    filteredProducts = [...filteredProducts].sort((a, b) => a.name.localeCompare(b.name));
-  } else if (sortOption === 'nameDesc') {
-    filteredProducts = [...filteredProducts].sort((a, b) => b.name.localeCompare(a.name));
-  }
-
-  return (
-    <div className="product-list">
-      <div className="product-list__controls">
-        <CategoryFilter 
-          categories={categories} 
-          selectedCategory={selectedCategory} 
-          onSelectCategory={setSelectedCategory} 
-        />
-        <div className="product-list__search-sort">
-          <input 
-            type="text" 
-            placeholder="Buscar productos..." 
-            value={searchQuery} 
-            onChange={e => setSearchQuery(e.target.value)} 
-          />
-          <select value={sortOption} onChange={e => setSortOption(e.target.value)}>
-            <option value="default">Ordenar por</option>
-            <option value="priceAsc">Precio: menor a mayor</option>
-            <option value="priceDesc">Precio: mayor a menor</option>
-            <option value="nameAsc">Nombre: A-Z</option>
-            <option value="nameDesc">Nombre: Z-A</option>
-          </select>
-        </div>
-      </div>
-      <div className="product-list__grid">
-        {filteredProducts.map(product => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
-    </div>
-  );
-};
-
-export default ProductList;
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/ZoomImage.tsx
-
-Contenido:
-// src/components/ZoomImage.tsx
-import React, { useState, useRef } from 'react';
-
-interface ZoomImageProps {
-  src: string;
-  alt?: string;
-  width?: number;   // Ancho del contenedor en px (por defecto: 300)
-  height?: number;  // Alto del contenedor en px (por defecto: 300)
-  zoomLevel?: number; // Factor de zoom (por defecto: 2)
-}
-
-const ZoomImage: React.FC<ZoomImageProps> = ({
-  src,
-  alt = '',
-  width = 300,
-  height = 300,
-  zoomLevel = 2,
-}) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [lensStyle, setLensStyle] = useState<{ display: string; left: number; top: number }>({
-    display: 'none',
-    left: 0,
-    top: 0,
-  });
-  const [backgroundPosition, setBackgroundPosition] = useState('0% 0%');
-
-  const lensSize = 100; // Tamaño de la lupa (en px)
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const rect = container.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    // Calcula la posición de la lupa centrada en el cursor
-    let lensX = x - lensSize / 2;
-    let lensY = y - lensSize / 2;
-
-    // Evita que la lupa se salga del contenedor
-    if (lensX < 0) lensX = 0;
-    if (lensY < 0) lensY = 0;
-    if (lensX > rect.width - lensSize) lensX = rect.width - lensSize;
-    if (lensY > rect.height - lensSize) lensY = rect.height - lensSize;
-
-    // Calcula la posición de fondo para la lupa (en porcentaje)
-    const bgPosX = (x / rect.width) * 100;
-    const bgPosY = (y / rect.height) * 100;
-
-    setBackgroundPosition(`${bgPosX}% ${bgPosY}%`);
-    setLensStyle({ display: 'block', left: lensX, top: lensY });
-  };
-
-  const handleMouseEnter = () => {
-    setLensStyle(prev => ({ ...prev, display: 'block' }));
-  };
-
-  const handleMouseLeave = () => {
-    setLensStyle(prev => ({ ...prev, display: 'none' }));
-  };
-
-  return (
-    <div
-      className="zoom-image-container"
-      ref={containerRef}
-      style={{
-        width: `${width}px`,
-        height: `${height}px`,
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      {/* Imagen base */}
-      <img
-        src={src}
-        alt={alt}
-        style={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-        }}
-      />
-      {/* Lupa o zoom */}
-      <div
-        className="zoom-lens"
-        style={{
-          display: lensStyle.display,
-          position: 'absolute',
-          left: lensStyle.left,
-          top: lensStyle.top,
-          width: `${lensSize}px`,
-          height: `${lensSize}px`,
-          borderRadius: '50%',
-          border: '2px solid var(--accent-color)',
-          backgroundImage: `url(${src})`,
-          backgroundRepeat: 'no-repeat',
-          backgroundSize: `${width * zoomLevel}px ${height * zoomLevel}px`,
-          backgroundPosition: backgroundPosition,
-          pointerEvents: 'none',
-          boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
-        }}
-      />
-    </div>
-  );
-};
-
-export default ZoomImage;
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/FullZoomImage.tsx
-
-Contenido:
-// src/components/FullZoomImage.tsx
-import React, { useState, useRef, useEffect } from 'react';
-
-interface FullZoomImageProps {
-  src: string;
-  alt?: string;
-  thumbnailWidth?: number;  // Ancho del thumbnail (por defecto: 300px)
-  thumbnailHeight?: number; // Alto del thumbnail (por defecto: 300px)
-}
-
-const FullZoomImage: React.FC<FullZoomImageProps> = ({
-  src,
-  alt = '',
-  thumbnailWidth = 300,
-  thumbnailHeight = 300,
-}) => {
-  const [hovered, setHovered] = useState(false);
-  const [naturalSize, setNaturalSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  // Obtiene las dimensiones naturales de la imagen
-  useEffect(() => {
-    const img = new Image();
-    img.src = src;
-    img.onload = () => {
-      setNaturalSize({ width: img.naturalWidth, height: img.naturalHeight });
-    };
-  }, [src]);
-
-  return (
-    <div
-      className="full-zoom-image-container"
-      ref={containerRef}
-      style={{
-        position: 'relative',
-        width: `${thumbnailWidth}px`,
-        height: `${thumbnailHeight}px`,
-        overflow: 'visible', // Permite que el overlay se muestre fuera del contenedor
-        cursor: 'zoom-in',
-      }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      {/* Imagen en tamaño reducido */}
-      <img
-        src={src}
-        alt={alt}
-        style={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          display: 'block',
-        }}
-      />
-      {/* Overlay que muestra la imagen en tamaño original */}
-      {hovered && (
-        <div
-          className="full-zoom-overlay"
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: '10%', // Se posiciona a la derecha del thumbnail
-            zIndex: 999,
-            border: '2px solid var(--accent-color)',
-            backgroundColor: '#fff',
-            boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
-            maxWidth: '90vw',
-            maxHeight: '90vh',
-            overflow: 'auto',
-            marginLeft: '1rem',
-          }}
-        >
-          <img
-            src={src}
-            alt={alt}
-            style={{
-              width: naturalSize.width,
-              height: naturalSize.height,
-              display: 'block',
-            }}
-          />
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default FullZoomImage;
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/ImageCarousel.tsx
-
-Contenido:
-import React, { useState, useEffect } from 'react';
-
-interface ImageCarouselProps {
-  images: string[];
-}
-
-const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
-  if (!images || images.length === 0) {
-    return <div className="image-carousel__empty">No hay imágenes disponibles</div>;
-  }
-
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
-  // Cambiar imagen cada 3 segundos
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
-    }, 3000);
-
-    return () => clearInterval(intervalId); // Limpiar intervalo al desmontar el componente
-  }, [images.length]);
-
-  return (
-    <div className="image-carousel">
-      <div className="image-carousel__wrapper">
-        <img
-          src={images[currentImageIndex]}
-          alt={`Hero Image ${currentImageIndex + 1}`}
-          className="image-carousel__image"
-        />
-      </div>
-      <div className="image-carousel__indicators">
-        {images.map((_, index) => (
-          <span
-            key={index}
-            className={`indicator ${index === currentImageIndex ? 'active' : ''}`}
-            onClick={() => setCurrentImageIndex(index)}
-          ></span>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-export default ImageCarousel;
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/ThemeToggle.tsx
-
-Contenido:
-// src/components/ThemeToggle.tsx
-import React, { useEffect, useState } from 'react';
-import '../scss/components/_themeToggle.scss'; // Importa los estilos de SCSS
-
-const ThemeToggle: React.FC = () => {
-  const [darkMode, setDarkMode] = useState(false);
-
-  useEffect(() => {
-    console.log('darkMode:', darkMode);
-    const root = document.documentElement;
-    if (darkMode) {
-      root.classList.add('theme-dark');
-    } else {
-      root.classList.remove('theme-dark');
-    }
-  }, [darkMode]);
-  
-  return (
-    <button
-      className="theme-toggle"
-      onClick={() => setDarkMode(!darkMode)}
-    >
-      {/* Puedes usar emojis, íconos, o texto */}
-      {darkMode ? '☀️' : '🌙'}
-    </button>
-  );
-};
-
-export default ThemeToggle;
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/Cart.tsx
-
-Contenido:
-// src/components/Cart.tsx
-import React, { useContext } from 'react';
-import { Link } from 'react-router-dom';
-import { CartContext } from '../context/CartContext';
-
-const Cart: React.FC = () => {
-  const { cartItems, removeFromCart, updateCartItem, clearCart } = useContext(CartContext);
-
-  const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
-    0
-  );
-
-  const handleQuantityChange = (productId: number, size: string, newQuantity: number) => {
-    if (newQuantity < 1) {
-      removeFromCart(productId, size);
-    } else {
-      updateCartItem(productId, size, newQuantity);
-    }
-  };
-
-  return (
-    <div className="cart">
-      <h2>Carrito de Compras</h2>
-      {cartItems.length === 0 ? (
-        <p>No hay productos en el carrito.</p>
-      ) : (
-        <div className="cart__content">
-          <div className="cart__items">
-            {cartItems.map(item => (
-              <div className="cart__item" key={`${item.product.id}-${item.size}`}>
-                <img
-                  src={item.product.images[0]}
-                  alt={item.product.name}
-                  className="cart__item-image"
-                />
-                <div className="cart__item-info">
-                  <h3>{item.product.name}</h3>
-                  <p>Talle: {item.size}</p>
-                  <p>Precio: ${item.product.price}</p>
-                  <div>
-                    <label htmlFor={`quantity-${item.product.id}-${item.size}`}>
-                      Cantidad:
-                    </label>
-                    <input
-                      id={`quantity-${item.product.id}-${item.size}`}
-                      type="number"
-                      value={item.quantity}
-                      min="1"
-                      onChange={(e) =>
-                        handleQuantityChange(
-                          item.product.id,
-                          item.size,
-                          parseInt(e.target.value)
-                        )
-                      }
-                      style={{ width: '60px', marginRight: '1rem' }}
-                    />
-                    <button
-                      onClick={() => removeFromCart(item.product.id, item.size)}
-                      className="btn"
-                    >
-                      Eliminar
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="cart__summary">
-            <h3>Resumen</h3>
-            <p>Subtotal: ${subtotal}</p>
-            <div style={{ marginBottom: '1rem' }}>
-              <button
-                onClick={clearCart}
-                className="btn"
-                style={{ backgroundColor: 'red', color: '#fff' }}
-              >
-                Vaciar Carrito
-              </button>
-            </div>
-            <Link to="/checkout" className="btn">
-              Proceder al Checkout
-            </Link>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default Cart;
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/products.json
-
-Contenido:
-{
-  "products": [
-    {
-      "id": 1,
-      "name": "Future Kimonos v1.0  BLACK Short Sleeve Rash Guard",
-      "category": "Rashguard",
-      "description": "Short sleeve black Jiu Jitsu rash guard with clean design and engineered with FUTURE technology materials for a hard wearing Jiu Jitsu player. The minimalist style rash guard combined with the design from John Lacko brings the old and new together.",
-      "price": 100,
-      "images": [
-        "/pictures/ArtBoard/Artboard1Blackfront.webp",
-        "/pictures/ArtBoard/Artboard1BlackSide.webp"
-      ],
-      "availableSizes": ["S", "M", "L", "XL"],
-      "stockBySize": {
-        "S": 4,
-        "M": 4,
-        "L": 4,
-        "XL": 3
-      },
-      "new": false
-
-    },
-    {
-      "id": 2,
-      "name": "Future Kimonos v1.0 - WHITE Short Sleeve Rash Guard",
-      "category": "Rashguard",
-      "description": "Short sleeve white Jiu Jitsu rash guard with clean design and engineered with FUTURE technology materials for a hard wearing Jiu Jitsu player. The minimalist style rash guard combined with the design from John Lacko brings the old and new together.",
-      "price": 60,
-      "images": [
-        "/pictures/ArtBoard/Artboard1WhitefrontWhite.webp",
-        "/pictures/ArtBoard/Artboard1WhitesideWhite.webp"
-      ],
-      "availableSizes": ["S", "M", "L", "XL"],
-      "stockBySize": {
-        "S": 5,
-        "M": 5,
-        "L": 5,
-        "XL": 5
-      },
-      "new": true
-
-    },
-    {
-      "id": 3,
-      "name": "Gordon Ryan ADCC 2022 - Gold Short Sleeve Rash Guard",
-      "category": "Rashguard",
-      "description": "GORDON RYAN ADCC 2022 Designed for ADCC 2022 as part of the 2022 Gordon Ryan x Future Kimonos 5 piece collection, made using our most premium grade MATTE fabric, moisture wicking and nano-silver coated, built with grappling specific smoothseam work for durability and strength, this rash guard is made in the SHORT SLEEVE variation of our most popular cut and fit. Expect this premium rash guard to feel buttery smooth with our matte material, feeling soft and light for grappling. Colors may slightly vary from rendered images, but this design is intended to have a more pastel color palette. Available to preview using our cutting edge 3D Future Viewer Technology, allowing you to change in real-time custom fields and see the exact configuration of your product before you buy. 3 customization fields are available with this product, including your name on the back, social tag below your name, and your country flag on the sleeve. This is truly a chance to have your own one of a kind competition set that you can proudly wear during competition or training time. With so many colors, pattern and custom variations, you are guaranteed to stand out from the rest. To create your own CUSTOM one of a kind rash guard, simply choose a style in your size that suits you, complete the form with your name, social, and country details, then add the item to the cart before checking out. We take care of the rest.",
-      "price": 40,
-      "images": [
-        "/pictures/gordobrian/dorada_front.webp"
-      ],
-      "availableSizes": ["S", "M", "L"],
-      "stockBySize": {
-        "S": 10,
-        "M": 10,
-        "L": 10
-      },
-      "new": false
-
-    },
-    {
-      "id": 4,
-      "name": "Kingz Draft Rashguard",
-      "category": "Rashguard",
-      "description": "Durable polyester/spandex fabric Snug athletic fit Fully sublimated graphics Material: 80% Polyester, 20% Spandex *Please follow wash and care instructions to ensure the longevity of your rash guard.",
-      "price": 40,
-      "images": [
-        "/pictures/kingz/draft_rash_front/DSC_6926_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6932_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6933_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6938_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6940_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6942_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6944_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6948_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6949_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6950_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6951_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6952_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6955_1620x.webp"
-      ],
-      "availableSizes": ["M", "L", "XL"],
-      "stockBySize": {
-        "M": 8,
-        "L": 9,
-        "XL": 8
-      },
-      "new": false
-
-    },
-    {
-      "id": 5,
-      "name": "Gordon Ryan ADCC 2024 Black - Short Sleeve Rash Guard",
-      "category": "Rashguard",
-      "description": "Introducing the official kit for Gordon Ryan ADCC super-fights in 2024. This short sleeve rash guard is made with competition spec fabric, moisture-wicking for optimal performance. Engineered for peak performance. A must-have for competing at the ADCC 2024 super-fights (or just training at your academy), this short sleeve rash guard is constructed with competition spec fabric and moisture-wicking capabilities. Stay cool, dry, and comfortable while you dominate the competition. Expect this premium rash guard to feel buttery smooth with our matte material, feeling soft and light for grappling. Colors may slightly vary from rendered images, but this design is intended to have a more pastel color palette.",
-      "price": 40,
-      "images": [
-        "/pictures/gordobrian/negra/blackgordonusaSSback.webp",
-        "/pictures/gordobrian/negra/blackgordonusaSSfront.webp"
-      ],
-      "availableSizes": ["S", "M", "L"],
-      "stockBySize": {
-        "S": 6,
-        "M": 6,
-        "L": 6
-      },
-      "new": true
-
-    },
-    {
-      "id": 6,
-      "name": "Kingz Terra Rashguard",
-      "category": "Rashguard",
-      "description": "Durable polyester/spandex fabric Snug athletic fit Fully sublimated graphics Material: 80% Polyester, 20% Spandex",
-      "price": 40,
-      "images": [
-        "/pictures/kingz/galvao/DSC_0426_1620x.webp",
-        "/pictures/kingz/galvao/DSC_0433_1620x.webp",
-        "/pictures/kingz/galvao/DSC_0438_1620x.webp",
-        "/pictures/kingz/galvao/DSC_0440_1620x.webp",
-        "/pictures/kingz/galvao/DSC_0442_1620x.webp",
-        "/pictures/kingz/galvao/DSC_0446_1620x.webp"
-      ],
-      "availableSizes": ["M", "L", "XL"],
-      "stockBySize": {
-        "M": 7,
-        "L": 7,
-        "XL": 8
-      },
-      "new": true
-    },
-    {
-      "id": 7,
-      "name": "Kingz Flow Rashguard",
-      "category": "Rashguard",
-      "description": "Durable polyester/spandex fabric Snug athletic fit Fully sublimated graphics Materials: 90% Polyester, 10% Spandex.",
-      "price": 40,
-      "images": [
-        "/pictures/kingz/negrashark/DSC_6956_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6961_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6965_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6967_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6969_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6971_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6975_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6976_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6977_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6978_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6979_1620x.webp"
-      ],
-      "availableSizes": ["L", "XL"],
-      "stockBySize": {
-        "L": 5,
-        "XL": 5
-      },
-      "new": true
-
-    },
-    {
-      "id": 8,
-      "name": "No Gi Rashguard",
-      "category": "Rashguard",
-      "description": "ADCC Submission Grappling World Federation Series - Short Sleeve Rash Guard.",
-      "price": 40,
-      "images": [
-
-        "/pictures/adcc/adcc_SS_back.webp",
-        "/pictures/adcc/adcc_SS_front.webp",
-        "/pictures/adcc/adcc_SS_left.webp",
-        "/pictures/adcc/adcc_SS_right.webp"
-      ],
-      "availableSizes": ["M", "L", "XL"],
-      "stockBySize": {
-        "M": 7,
-        "L": 7,
-        "XL": 8
-      },
-      "new": true
-
-    }
-  ]
-}
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/Header.tsx
-
-Contenido:
-// src/components/Header.tsx
-import React, { useContext, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { CartContext } from '../context/CartContext';
-import '../scss/components/_header.scss';
-
-const Header: React.FC = () => {
-  const { cartItems } = useContext(CartContext);
-  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const toggleMobileMenu = () => setIsMobileMenuOpen(prev => !prev);
-
-  return (
-    <header className="header">
-      <div className="header__logo">
-        <Link to="/">Grappling Gear</Link>
-      </div>
-
-      {/* Menú para pantallas de escritorio */}
-      <nav className="header__nav desktop">
-        <Link to="/productos">Productos</Link>
-        <Link to="/contactanos">Contáctanos</Link>
-        <Link to="/carrito" className="header__cart">
-          Carrito
-          {totalItems > 0 && (
-            <span className="header__cart-badge">{totalItems}</span>
-          )}
-        </Link>
-      </nav>
-
-      {/* Botón menú hamburguesa para tablet y móvil */}
-      <div className="header__mobile-menu">
-        <button 
-          onClick={toggleMobileMenu} 
-          className="mobile-menu__toggle" 
-          aria-label="Abrir menú de navegación"
-        >
-          <span className="mobile-menu__bar"></span>
-          <span className="mobile-menu__bar"></span>
-          <span className="mobile-menu__bar"></span>
-        </button>
-      </div>
-
-      {/* Overlay del menú móvil */}
-      {isMobileMenuOpen && (
-        <div className="mobile-menu__overlay" onClick={toggleMobileMenu}>
-          <div 
-            className="mobile-menu__content" 
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button 
-              className="mobile-menu__close" 
-              onClick={toggleMobileMenu} 
-              aria-label="Cerrar menú de navegación"
-            >
-              &times;
-            </button>
-            <nav className="mobile-menu__nav">
-              <Link to="/productos" onClick={toggleMobileMenu}>Productos</Link>
-              <Link to="/contactanos" onClick={toggleMobileMenu}>Contáctanos</Link>
-              <Link to="/carrito" onClick={toggleMobileMenu} className="mobile-cart">
-                Carrito
-                {totalItems > 0 && (
-                  <span className="header__cart-badge">{totalItems}</span>
-                )}
-              </Link>
-            </nav>
-          </div>
-        </div>
-      )}
-    </header>
-  );
-};
-
-export default Header;
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/Footer.tsx
-
-Contenido:
-// Footer.tsx
-import React from 'react';
-import '../scss/components/_footer.scss';
-
-const Footer: React.FC = () => {
-  return (
-    <footer className="footer">
-      <p>© {new Date().getFullYear()} Grappling Gear. Todos los derechos reservados.</p>
-    </footer>
-  );
-};
-
-export default Footer;
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/ProductCard.tsx
-
-Contenido:
-// src/components/ProductCard.tsx
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Product } from '../types/product';
-
-const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
-  return (
-    <div className="product-card">
-      <Link to={`/producto/${product.id}`} className="product-card__link">
-        <div className="product-card__image-container">
-          <img
-            src={product.images[0]}
-            alt={product.name}
-            className="product-card__image"
-          />
-          <div className="product-card__overlay">
-            <span className="product-card__quick-view">Ver Detalle</span>
-          </div>
-        </div>
-      </Link>
-      <div className="product-card__info">
-        <h3 className="product-card__title">{product.name}</h3>
-        <p className="product-card__description">
-          {product.description.substring(0, 70)}...
-        </p>
-        <div className="product-card__price">${product.price}</div>
-      </div>
-    </div>
-  );
-};
-
-export default ProductCard;
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/Hero.tsx
-
-Contenido:
-// src/components/Hero.tsx
-import React from 'react';
-import ImageCarousel from './ImageCarousel';
-import '../scss/components/_hero.scss';
-
-interface HeroProps {
-  images: string[];
-}
-
-const Hero: React.FC<HeroProps> = ({ images }) => {
-  return (
-    <section className="hero">
-      <div className="hero__background">
-        <ImageCarousel images={images} />
-      </div>
-      <div className="hero__content">
-        <h1 className="hero__title">Descubre la Innovación en Grappling</h1>
-        <p className="hero__subtitle">Equipamiento premium para el guerrero moderno</p>
-        <a href="#nuestra-coleccion" className="hero__cta">Explora ahora</a>
-      </div>
-    </section>
-  );
-};
-
-export default Hero;
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/NotificationContainer.tsx
-
-Contenido:
-// src/components/NotificationContainer.tsx
-import React from 'react';
-import ReactDOM from 'react-dom';
-import { useNotification } from '../context/NotificationContext';
-import '../scss/components/_notifications.scss';
-
-const NotificationContainer: React.FC = () => {
-  const { notifications } = useNotification();
-
-  return ReactDOM.createPortal(
-    <div className="notification-container">
-      {notifications.map(notif => (
-        <div key={notif.id} className={`notification ${notif.type}`}>
-          {notif.message}
-        </div>
-      ))}
-    </div>,
-    document.body
-  );
-};
-
-export default NotificationContainer;
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/ProductGrid.tsx
-
-Contenido:
-// src/components/ProductGrid.tsx
-import React from 'react';
-import { motion } from 'framer-motion';
-import ProductCard from './ProductCard';
-import productsData from './products.json';
-import { Product } from '../types/product';
-
-const ProductGrid: React.FC = () => {
-  const products: Product[] = productsData.products;
-
-  return (
-    <motion.section 
-      id="nuestra-coleccion"
-      className="product-grid-creative"
-      initial={{ opacity: 0, y: 50 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.8, ease: "easeOut" }}
-    >
-      <div className="collection-intro">
-        <h2>Nuestra Colección</h2>
-        <p>
-          Descubre la fusión perfecta entre tecnología y pasión por el grappling.
-        </p>
-      </div>
-      <div className="product-grid-creative__list">
-        {products.map(product => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
-    </motion.section>
-  );
-};
-
-export default ProductGrid;
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/Checkout.tsx
-
-Contenido:
-// src/components/Checkout.tsx
-import React, { useState } from 'react';
-
-const Checkout: React.FC = () => {
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    address: '',
-    city: '',
-    zip: '',
-    country: '',
-  });
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Aquí se implementaría la lógica de envío del pedido
-    console.log('Datos de Checkout:', formData);
-  };
-
-  return (
-    <div className="checkout">
-      <h2>Checkout</h2>
-      <form className="checkout__form" onSubmit={handleSubmit}>
-        <div className="checkout__group">
-          <label htmlFor="fullName">Nombre Completo</label>
-          <input
-            type="text"
-            id="fullName"
-            name="fullName"
-            value={formData.fullName}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="checkout__group">
-          <label htmlFor="email">Correo Electrónico</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="checkout__group">
-          <label htmlFor="address">Dirección</label>
-          <input
-            type="text"
-            id="address"
-            name="address"
-            value={formData.address}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="checkout__group">
-          <label htmlFor="city">Ciudad</label>
-          <input
-            type="text"
-            id="city"
-            name="city"
-            value={formData.city}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="checkout__group">
-          <label htmlFor="zip">Código Postal</label>
-          <input
-            type="text"
-            id="zip"
-            name="zip"
-            value={formData.zip}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="checkout__group">
-          <label htmlFor="country">País</label>
-          <select
-            id="country"
-            name="country"
-            value={formData.country}
-            onChange={handleChange}
-            required
-          >
-            <option value="">Selecciona un país</option>
-            <option value="AR">Argentina</option>
-            <option value="US">Estados Unidos</option>
-            <option value="ES">España</option>
-          </select>
-        </div>
-        <button type="submit" className="btn checkout__submit">Realizar Pedido</button>
-      </form>
-    </div>
-  );
-};
-
-export default Checkout;
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/context/CartContext.tsx
-
-Contenido:
-// src/context/CartContext.tsx
-import { createContext, useState, ReactNode } from 'react';
-import { Product } from '../types/product';
-
-export interface CartItem {
-  product: Product;
-  quantity: number;
-  size: string;
-}
-
-interface CartContextType {
-  cartItems: CartItem[];
-  addToCart: (item: CartItem) => void;
-  removeFromCart: (productId: number, size: string) => void;
-  updateCartItem: (productId: number, size: string, newQuantity: number) => void;
-  clearCart: () => void;
-}
-
-export const CartContext = createContext<CartContextType>({
-  cartItems: [],
-  addToCart: () => {},
-  removeFromCart: () => {},
-  updateCartItem: () => {},
-  clearCart: () => {},
-});
-
-export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-
-  const addToCart = (item: CartItem) => {
-    setCartItems(prevItems => {
-      // Se busca si ya existe el mismo producto con el mismo talle
-      const index = prevItems.findIndex(
-        ci => ci.product.id === item.product.id && ci.size === item.size
-      );
-      if (index !== -1) {
-        const newItems = [...prevItems];
-        newItems[index].quantity += item.quantity;
-        return newItems;
-      }
-      return [...prevItems, item];
-    });
-  };
-
-  const removeFromCart = (productId: number, size: string) => {
-    setCartItems(prevItems =>
-      prevItems.filter(item => !(item.product.id === productId && item.size === size))
-    );
-  };
-
-  const updateCartItem = (productId: number, size: string, newQuantity: number) => {
-    setCartItems(prevItems =>
-      prevItems.map(item => {
-        if (item.product.id === productId && item.size === size) {
-          return { ...item, quantity: newQuantity };
+  .cart__content {
+    display: flex;
+    gap: 2rem;
+    width: 100%;
+    flex-direction: row;
+
+    .cart__items {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+
+      .cart__item {
+        display: flex;
+        gap: 1rem;
+        padding: 1.5rem;
+        border-radius: 10px;
+        background-color: var(--background-color);
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease;
+
+        &:hover {
+          transform: scale(1.02);
         }
-        return item;
-      })
-    );
-  };
 
-  const clearCart = () => {
-    setCartItems([]);
-  };
+        .cart__item-image {
+          width: 100px;
+          height: 100px;
+          object-fit: cover;
+          border-radius: 8px;
+        }
 
-  return (
-    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateCartItem, clearCart }}>
-      {children}
-    </CartContext.Provider>
-  );
-};
+        .cart__item-info {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
 
+          h3 {
+            margin: 0 0 0.5rem;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            font-weight: 500;
+          }
 
---------------------------------------------------------------------------------
+          p {
+            color: var(--text-color);
+            margin: 0.25rem 0;
+          }
 
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/context/NotificationContext.tsx
+          .cart__quantity {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
 
-Contenido:
-// src/context/NotificationContext.tsx
-import { createContext, useContext, useState, ReactNode } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+            input {
+              width: 50px;
+              padding: 0.75rem;
+              text-align: center;
+              border-radius: 8px;
+              border: 1px solid var(--secondary-hover-color);
+              transition: all 0.3s ease;
+              background-color: var(--background-color);
+              color: var(--text-color);
 
-export type NotificationType = 'success' | 'error' | 'info';
+              &:focus {
+                outline: none;
+                border-color: var(--accent-color);
+              }
+            }
 
-export interface Notification {
-  id: string;
-  type: NotificationType;
-  message: string;
-}
+            .btn {
+              background-color: var(--accent-color);
+              color: var(--background-color);
+              padding: 0.5rem 1rem;
+              border-radius: 8px;
+              cursor: pointer;
+              transition: background-color 0.3s ease;
+              border: none;
+              font-weight: 500;
 
-interface NotificationContextType {
-  notifications: Notification[];
-  showNotification: (message: string, type?: NotificationType) => void;
-  removeNotification: (id: string) => void;
-}
-
-export const NotificationContext = createContext<NotificationContextType>({
-  notifications: [],
-  showNotification: () => {},
-  removeNotification: () => {},
-});
-
-export const NotificationProvider = ({ children }: { children: ReactNode }) => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-
-  const showNotification = (message: string, type: NotificationType = 'info') => {
-    const id = uuidv4();
-    setNotifications(prev => [...prev, { id, message, type }]);
-    // Elimina la notificación después de 3 segundos
-    setTimeout(() => removeNotification(id), 3000);
-  };
-
-  const removeNotification = (id: string) => {
-    setNotifications(prev => prev.filter(notif => notif.id !== id));
-  };
-
-  return (
-    <NotificationContext.Provider value={{ notifications, showNotification, removeNotification }}>
-      {children}
-    </NotificationContext.Provider>
-  );
-};
-
-export const useNotification = () => useContext(NotificationContext);
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/context/InventoryContext.tsx
-
-Contenido:
-// src/context/InventoryContext.tsx
-import { createContext, useState, ReactNode } from 'react';
-import productsData from '../components/products.json';
-
-interface Inventory {
-  [productId: number]: Partial<Record<string, number>>;
-}
-
-interface InventoryContextType {
-  inventory: Inventory;
-  checkStock: (productId: number, size: string) => number;
-  reduceStock: (productId: number, size: string, quantity: number) => boolean;
-}
-
-export const InventoryContext = createContext<InventoryContextType>({
-  inventory: {},
-  checkStock: () => 0,
-  reduceStock: () => false,
-});
-
-export const InventoryProvider = ({ children }: { children: ReactNode }) => {
-  const initialInventory: Inventory = {};
-  productsData.products.forEach(product => {
-    initialInventory[product.id] = product.stockBySize;
-  });
-  const [inventory, setInventory] = useState<Inventory>(initialInventory);
-
-  const checkStock = (productId: number, size: string): number => {
-    return inventory[productId] ? inventory[productId][size] || 0 : 0;
-  };
-
-  const reduceStock = (productId: number, size: string, quantity: number): boolean => {
-    const currentStock = checkStock(productId, size);
-    if (currentStock >= quantity) {
-      setInventory(prev => ({
-        ...prev,
-        [productId]: {
-          ...prev[productId],
-          [size]: (prev[productId][size] || 0) - quantity,
-        },
-      }));
-      return true;
+              &:hover {
+                background-color: var(--secondary-hover-color);
+              }
+            }
+          }
+        }
+      }
     }
-    return false;
-  };
 
-  return (
-    <InventoryContext.Provider value={{ inventory, checkStock, reduceStock }}>
-      {children}
-    </InventoryContext.Provider>
-  );
-};
+    .cart__summary {
+      flex: 1;
+      border-radius: 10px;
+      padding: 1.5rem;
+      background-color: var(--background-color);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+
+      h3 {
+        margin: 0;
+        color: var(--primary-color);
+        font-weight: 500;
+      }
+
+      .cart__subtotal {
+        margin: 1rem 0;
+        font-size: 1.3rem;
+        color: var(--text-color);
+      }
+
+      .cart__actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+
+        .btn {
+          width: 100%;
+          padding: 0.75rem;
+          background-color: var(--accent-color);
+          color: var(--background-color);
+          border-radius: 50px;
+          text-transform: uppercase;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+          text-decoration: none;
+        }
+
+        .btn:hover {
+          background-color: var(--secondary-hover-color);
+        }
+
+        .cart__clear-button {
+          padding: 0.75rem 2rem;
+          background: linear-gradient(135deg, #FF6B6B, #FF3D3D);  // Degradado de rojo
+          color: var(--background-color);
+          font-size: 1.2rem;
+          font-weight: 600;
+          border: 2px solid #FF3D3D;  // Borde que coincide con el color de fondo
+          border-radius: 50px;
+          cursor: pointer;
+          text-transform: uppercase;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  // Sombra sutil para dar profundidad
+        
+          &:hover {
+            background: linear-gradient(135deg, #FF3D3D, #FF6B6B);  // Cambio en el gradiente al pasar el ratón
+            color: var(--background-color);
+            transform: translateY(-2px);  // Efecto de "presionar" hacia arriba
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);  // Sombra más pronunciada en hover
+          }
+        
+          &:active {
+            transform: translateY(2px);  // Efecto de "presionar" hacia abajo
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);  // Sombra más sutil
+          }
+        }
+        
+        .cart__checkout-button {
+          padding: 0.75rem 2rem;
+          background-color: var(--succes-color);  // Color vibrante para destacar el botón
+          color: var(--background-color);
+          font-size: 1.2rem;
+          font-weight: 600;
+          border: none;
+          border-radius: 50px;
+          cursor: pointer;
+          text-transform: uppercase;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  // Sombra sutil para darle profundidad
+        
+          &:hover {
+            background-color: var(--secondary-hover-color);  // Cambio suave de color en hover
+            transform: scale(1.05);  // Efecto de ampliación
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);  // Sombra más pronunciada en hover
+          }
+        
+          &:active {
+            transform: scale(1);  // Vuelve a su tamaño original cuando se hace clic
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);  // Sombra más sutil al hacer clic
+          }
+        }
+        
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    .cart__content {
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .cart__summary {
+      order: -1; /* Coloca el resumen al principio en pantallas pequeñas */
+    }
+  }
+}
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_cart.scss
+
+Contenido:
+.cart {
+  padding: 3rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  gap: 3rem;
+  flex-wrap: wrap;
+
+  .cart__title {
+    font-size: 3rem;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--primary-color);
+    letter-spacing: 1px;
+  }
+
+  .cart__empty-message {
+    text-align: center;
+    font-size: 1.5rem;
+    color: var(--text-color);
+  }
+
+  .cart__content {
+    display: flex;
+    gap: 2rem;
+    width: 100%;
+    flex-direction: row;
+
+    .cart__items {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+
+      .cart__item {
+        display: flex;
+        gap: 1rem;
+        padding: 1.5rem;
+        border-radius: 10px;
+        background-color: var(--background-color);
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease;
+
+        &:hover {
+          transform: scale(1.02);
+        }
+
+        .cart__item-image {
+          width: 100px;
+          height: 100px;
+          object-fit: cover;
+          border-radius: 8px;
+        }
+
+        .cart__item-info {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+
+          h3 {
+            margin: 0 0 0.5rem;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            font-weight: 500;
+          }
+
+          p {
+            color: var(--text-color);
+            margin: 0.25rem 0;
+          }
+
+          .cart__quantity {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+
+            input {
+              width: 50px;
+              padding: 0.75rem;
+              text-align: center;
+              border-radius: 8px;
+              border: 1px solid var(--secondary-hover-color);
+              transition: all 0.3s ease;
+              background-color: var(--background-color);
+              color: var(--text-color);
+
+              &:focus {
+                outline: none;
+                border-color: var(--accent-color);
+              }
+            }
+
+            .btn {
+              background-color: var(--accent-color);
+              color: var(--background-color);
+              padding: 0.5rem 1rem;
+              border-radius: 8px;
+              cursor: pointer;
+              transition: background-color 0.3s ease;
+              border: none;
+              font-weight: 500;
+
+              &:hover {
+                background-color: var(--secondary-hover-color);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .cart__summary {
+      flex: 1;
+      border-radius: 10px;
+      padding: 1.5rem;
+      background-color: var(--background-color);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+
+      h3 {
+        margin: 0;
+        color: var(--primary-color);
+        font-weight: 500;
+      }
+
+      .cart__subtotal {
+        margin: 1rem 0;
+        font-size: 1.3rem;
+        color: var(--text-color);
+      }
+
+      .cart__actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+
+        .btn {
+          width: 100%;
+          padding: 0.75rem;
+          background-color: var(--accent-color);
+          color: var(--background-color);
+          border-radius: 50px;
+          text-transform: uppercase;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+          text-decoration: none;
+        }
+
+        .btn:hover {
+          background-color: var(--secondary-hover-color);
+        }
+
+        .cart__clear-button {
+          padding: 0.75rem 2rem;
+          background: linear-gradient(135deg, #FF6B6B, #FF3D3D);  // Degradado de rojo
+          color: var(--background-color);
+          font-size: 1.2rem;
+          font-weight: 600;
+          border: 2px solid #FF3D3D;  // Borde que coincide con el color de fondo
+          border-radius: 50px;
+          cursor: pointer;
+          text-transform: uppercase;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  // Sombra sutil para dar profundidad
+        
+          &:hover {
+            background: linear-gradient(135deg, #FF3D3D, #FF6B6B);  // Cambio en el gradiente al pasar el ratón
+            color: var(--background-color);
+            transform: translateY(-2px);  // Efecto de "presionar" hacia arriba
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);  // Sombra más pronunciada en hover
+          }
+        
+          &:active {
+            transform: translateY(2px);  // Efecto de "presionar" hacia abajo
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);  // Sombra más sutil
+          }
+        }
+        
+        .cart__checkout-button {
+          padding: 0.75rem 2rem;
+          background-color: var(--succes-color);  // Color vibrante para destacar el botón
+          color: var(--background-color);
+          font-size: 1.2rem;
+          font-weight: 600;
+          border: none;
+          border-radius: 50px;
+          cursor: pointer;
+          text-transform: uppercase;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  // Sombra sutil para darle profundidad
+        
+          &:hover {
+            background-color: var(--secondary-hover-color);  // Cambio suave de color en hover
+            transform: scale(1.05);  // Efecto de ampliación
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);  // Sombra más pronunciada en hover
+          }
+        
+          &:active {
+            transform: scale(1);  // Vuelve a su tamaño original cuando se hace clic
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);  // Sombra más sutil al hacer clic
+          }
+        }
+        
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    .cart__content {
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .cart__summary {
+      order: -1; /* Coloca el resumen al principio en pantallas pequeñas */
+    }
+  }
+}
 
 
 --------------------------------------------------------------------------------
@@ -1697,7 +464,8 @@ $light-colors: (
   secondary-hover: #555555,   // Hover sutil
   background: #ffffff,        // Fondo blanco
   text: #222222,              // Texto oscuro
-  accent: #d4af37             // Toque dorado
+  accent: #d4af37,             // Toque dorado
+  succes:#83d437 
 );
 
 $dark-colors: (
@@ -1706,7 +474,9 @@ $dark-colors: (
   secondary-hover: #c99a30,   // Hover con variación del acento
   background: #121212,        // Fondo casi negro
   text: #f0f0f0,              // Texto claro
-  accent: #d4af37             // Toque dorado
+  accent: #d4af37   ,
+  succes:#69d437 
+  // Toque dorado
 );
 
 @mixin theme($colors) {
@@ -1716,1624 +486,8 @@ $dark-colors: (
   --background-color: #{map-get($colors, background)};
   --text-color: #{map-get($colors, text)};
   --accent-color: #{map-get($colors, accent)};
-}
+  --succes-color: #{map-get($colors, succes)};
 
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/_mixins.scss
-
-Contenido:
-// src/scss/_mixins.scss
-@mixin flex-center {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/main.scss
-
-Contenido:
-@use './variables' as *;
-@use './base' as *;
-@use './components/_header' as *;
-@use './components/_hero' as *;
-@use './components/_product' as *;
-@use './components/_product_detaills' as *;
-@use './components/_checkout' as *;
-@use './components/_cart' as *;
-@use './components/_productList' as *;
-@use './components/productAdvanced' as *;
-@use './components/_productGrid' as *;
-@use './components/_contactanos' as *;
-@use './components/_ImageCarousel' as *;
-
-
-
-@use './components/_footer' as *;
-@use './mixins' as *;
-@use './themes' as *; // <-- que esté al final
-
-
-.main-content {
-    margin-top: 80px; // Ajusta según la altura real de tu header
-  }
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/_themes.scss
-
-Contenido:
-// src/scss/_themes.scss
-@use './variables' as vars;
-
-html {
-  @include vars.theme(vars.$light-colors);
-  // Overlay para el Hero en tema claro: degradado de negro
-  --hero-overlay: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(243, 238, 238, 0.3));
-}
-
-html.theme-dark {
-  @include vars.theme(vars.$dark-colors);
-  // Overlay para el Hero en tema oscuro: degradado de blanco para resaltar el contenido
-  --hero-overlay: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.3));
-}
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/_base.scss
-
-Contenido:
-// src/scss/_base.scss
-* {
-  box-sizing: border-box;
-}
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  font-family: 'Roboto', sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: var(--background-color);
-  color: var(--text-color);
-  line-height: 1.6;
-}
-
-a {
-  color: var(--primary-color);
-  text-decoration: none;
-  transition: color 0.3s;
-}
-
-a:hover {
-  color: var(--accent-color);
-}
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_contactanos.scss
-
-Contenido:
-/* src/scss/components/_contactanos.scss */
-.contactanos {
-    padding: 2rem;
-    max-width: 800px;
-    margin: 0 auto;
-    text-align: center;
-  
-    h2 {
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
-      color: var(--primary-color);
-    }
-  
-    p {
-      margin-bottom: 2rem;
-      color: var(--text-color);
-    }
-  
-    &__form {
-      display: grid;
-      grid-gap: 1rem;
-      text-align: left;
-      margin-bottom: 2rem;
-  
-      &-group {
-        display: flex;
-        flex-direction: column;
-  
-        label {
-          margin-bottom: 0.5rem;
-          font-weight: bold;
-          color: var(--primary-color);
-        }
-  
-        input,
-        textarea {
-          padding: 0.75rem;
-          border: 1px solid var(--secondary-hover-color);
-          border-radius: 4px;
-          font-size: 1rem;
-          color: var(--text-color);
-          background-color: var(--background-color);
-        }
-      }
-    }
-  
-    &__submit {
-      background-color: var(--secondary-color);
-      color: var(--background-color);
-      border: none;
-      border-radius: 50px;
-      padding: 0.75rem 2rem;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background-color 0.3s;
-  
-      &:hover {
-        background-color: var(--secondary-hover-color);
-      }
-    }
-  
-    &__info {
-      text-align: left;
-      margin-top: 2rem;
-      color: var(--text-color);
-  
-      h3 {
-        font-size: 1.8rem;
-        margin-bottom: 1rem;
-        color: var(--primary-color);
-      }
-  
-      p {
-        margin-bottom: 0.5rem;
-      }
-    }
-  }
-  
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_ImageCarousel.scss
-
-Contenido:
-.image-carousel {
-  position: relative;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  overflow: hidden;
-  border-radius: 8px;
-  object-fit: fill;
-}
-
-.image-carousel__wrapper {
-
-  overflow: hidden;
-  display: flex;
-  justify-content: center;
-}
-
-.image-carousel__image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: opacity 0.5s ease-in-out;
-}
-
-.image-carousel__indicators {
-  position: absolute;
-  bottom: 15px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 10px;
-}
-
-.indicator {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  
-  &.active {
-    background-color: white;
-    width: 16px;
-    height: 16px;
-  }
-
-  &:hover {
-    background-color: rgba(255, 255, 255, 0.8);
-  }
-}
-
-/* Elimina el estilo para las flechas, si ya no las necesitas */
-.image-carousel__controls {
-  display: none; /* Esto oculta los controles de las flechas */
-}
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_notifications.scss
-
-Contenido:
-// src/scss/components/_notifications.scss
-.notification-container {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  z-index: 1100;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.notification {
-  min-width: 250px;
-  padding: 1rem;
-  border-radius: 4px;
-  color: var(--background-color);
-  font-size: 0.9rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  opacity: 0.95;
-  animation: slideIn 0.3s ease-out;
-}
-
-.notification.info {
-  background-color: #2196F3; /* Azul */
-}
-
-.notification.success {
-  background-color: #4CAF50; /* Verde */
-}
-
-.notification.error {
-  background-color: #F44336; /* Rojo */
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_header.scss
-
-Contenido:
-// src/scss/components/_header.scss
-.header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  padding: 1rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: var(--background-color);
-  backdrop-filter: blur(10px);
-  z-index: 1000;
-  border-bottom: 1px solid var(--secondary-hover-color);
-
-  &__logo a {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: var(--primary-color);
-    letter-spacing: 1px;
-  }
-
-  &__nav {
-    display: flex;
-    gap: 2rem;
-
-    a {
-      font-size: 1rem;
-      font-weight: 500;
-      position: relative;
-      padding: 0.5rem 0;
-
-      &:after {
-        content: '';
-        position: absolute;
-        left: 0;
-        bottom: 0;
-        width: 0;
-        height: 2px;
-        background: var(--accent-color);
-        transition: width 0.3s;
-      }
-
-      &:hover:after {
-        width: 100%;
-      }
-    }
-  }
-
-  &__cart {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    padding: 0.5rem;
-    font-size: 1rem;
-    color: var(--primary-color);
-    text-decoration: none;
-
-    &:hover {
-      color: var(--accent-color);
-    }
-  }
-
-  &__cart-badge {
-    position: absolute;
-    top: -5px;
-    right: -10px;
-    background-color: var(--accent-color);
-    color: var(--background-color);
-    border-radius: 50%;
-    padding: 0.2rem 0.5rem;
-    font-size: 0.75rem;
-    font-weight: bold;
-  }
-
-  // Menú móvil: oculto en desktop
-  &__mobile-menu {
-    display: none;
-  }
-}
-
-/* Estilos para el botón de menú hamburguesa y overlay móvil */
-.mobile-menu__toggle {
-  background: transparent;
-  border: none;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  width: 24px;
-  height: 24px;
-  cursor: pointer;
-
-  .mobile-menu__bar {
-    width: 100%;
-    height: 2px;
-    background-color: var(--primary-color);
-    transition: background-color 0.3s;
-  }
-}
-
-.mobile-menu__overlay {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 100%;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.8); // Aumentamos la opacidad para un mejor contraste
-  display: flex;
-  justify-content: flex-end;
-  z-index: 1100;
-}
-
-
-.mobile-menu__content {
-  background-color: var(--background-color);
-  width: 80%;
-  max-width: 300px;
-  height: 100%;
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-}
-
-.mobile-menu__close {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: transparent;
-  border: none;
-  font-size: 2rem;
-  cursor: pointer;
-  color: var(--primary-color);
-}
-
-.mobile-menu__nav {
-  margin-top: 3rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-
-  a {
-    font-size: 1.2rem;
-    color: var(--primary-color);
-    text-decoration: none;
-    transition: color 0.3s;
-
-    &:hover {
-      color: var(--accent-color);
-    }
-  }
-}
-
-/* Responsive: Muestra menú hamburguesa en tablet y móvil */
-@media (max-width: 768px) {
-  .header {
-    padding: 0.75rem 1.5rem;
-
-    &__nav.desktop {
-      display: none;
-    }
-    &__mobile-menu {
-      display: block;
-    }
-  }
-}
-
-.mobile-menu__overlay {
-  position: fixed;
-  top: 0;
-  left: 0; /* Abarca toda la pantalla */
-  width: 100%;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.8); // Fondo oscuro para mayor contraste
-  display: flex;
-  justify-content: flex-end;
-  z-index: 1100;
-  opacity: 0;
-  animation: fadeIn 0.3s forwards;
-}
-
-@keyframes fadeIn {
-  to {
-    opacity: 1;
-  }
-}
-
-/* ------------------------------
-   PANEL LATERAL DEL MENÚ MÓVIL
---------------------------------*/
-.mobile-menu__content {
-  background-color: var(--background-color);
-  width: 80%;
-  max-width: 300px;
-  height: 100%;
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  transform: translateX(100%);
-  animation: slideIn 0.3s forwards;
-  box-shadow: -4px 0 10px rgba(0, 0, 0, 0.1);
-}
-
-@keyframes slideIn {
-  to {
-    transform: translateX(0);
-  }
-}
-
-/* ------------------------------
-   BOTÓN DE CERRAR
---------------------------------*/
-.mobile-menu__close {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: transparent;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: var(--primary-color);
-  transition: color 0.2s;
-  
-  &:hover {
-    color: var(--accent-color);
-  }
-}
-
-/* ------------------------------
-   NAVEGACIÓN DEL MENÚ MÓVIL
---------------------------------*/
-.mobile-menu__nav {
-  margin-top: 3rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-
-  a {
-    font-size: 1.2rem;
-    font-weight: 500;
-    color: var(--primary-color);
-    text-decoration: none;
-    padding-bottom: 0.2rem;
-    transition: color 0.2s, border-bottom 0.2s;
-
-    &:hover {
-      color: var(--accent-color);
-      border-bottom: 1px solid var(--accent-color);
-    }
-  }
-}
-
-
-// Animaciones de entrada y salida
-@keyframes fadeIn {
-  to { opacity: 1; }
-}
-
-@keyframes fadeOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
-}
-
-@keyframes slideIn {
-  to { transform: translateX(0); }
-}
-
-@keyframes slideOut {
-  from { transform: translateX(0); }
-  to { transform: translateX(100%); }
-}
-
-/* Overlay del menú móvil */
-.mobile-menu__overlay {
-  position: fixed;
-  top: 0;
-  left: 0; /* Abarca toda la pantalla */
-  width: 100%;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.8); // Fondo oscuro para mayor contraste
-  display: flex;
-  justify-content: flex-end;
-  z-index: 1100;
-  opacity: 0;
-  animation: fadeIn 0.3s forwards;
-}
-
-/* Clase para la animación de cierre del overlay */
-.mobile-menu__overlay.closing {
-  animation: fadeOut 0.3s forwards;
-}
-
-/* Panel lateral del menú móvil */
-.mobile-menu__content {
-  background-color: var(--background-color);
-  width: 80%;
-  max-width: 300px;
-  height: 100%;
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  transform: translateX(100%);
-  animation: slideIn 0.3s forwards;
-  box-shadow: -4px 0 10px rgba(0, 0, 0, 0.1);
-}
-
-/* Clase para la animación de cierre del panel */
-.mobile-menu__content.closing {
-  animation: slideOut 0.3s forwards;
-}
-
-/* Botón de cerrar */
-.mobile-menu__close {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: transparent;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: var(--primary-color);
-  transition: color 0.2s;
-  
-  &:hover {
-    color: var(--accent-color);
-  }
-}
-
-/* Navegación del menú móvil */
-.mobile-menu__nav {
-  margin-top: 3rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-
-  a {
-    font-size: 1.2rem;
-    font-weight: 500;
-    color: var(--primary-color);
-    text-decoration: none;
-    padding-bottom: 0.2rem;
-    transition: color 0.2s, border-bottom 0.2s;
-
-    &:hover {
-      color: var(--accent-color);
-      border-bottom: 1px solid var(--accent-color);
-    }
-  }
-}
-
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_hero.scss
-
-Contenido:
-// src/scss/components/_hero.scss
-
-@import '../variables';
-
-.hero {
-  @include theme($light-colors);
-  
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  position: relative;
-  background-color: transparent;
-  padding: 0;  // Elimina el padding para que las imágenes cubran toda la sección.
-  overflow: hidden;
-
-  .hero__background {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-    display: flex; // Hacemos que el contenedor del carrusel ocupe toda la sección.
-  }
-
-  .hero__content {
-    max-width: 1200px;
-    padding: 20px;
-    margin: 0 auto;
-    z-index: 1;  // Asegura que el contenido esté por encima de las imágenes.
-
-    .hero__title {
-      font-size: 40px;
-      font-weight: 700;
-      color: var(--primary-color);
-      margin-bottom: 20px;
-      text-transform: uppercase;
-      letter-spacing: 3px;
-      line-height: 1.2;
-
-      @media (max-width: 768px) {
-        font-size: 30px;
-      }
-
-      @media (max-width: 480px) {
-        font-size: 24px;
-      }
-    }
-
-    .hero__subtitle {
-      font-size: 20px;
-      font-weight: 300;
-      color: var(--secondary-color);
-      margin-bottom: 30px;
-      line-height: 1.5;
-
-      @media (max-width: 768px) {
-        font-size: 18px;
-      }
-
-      @media (max-width: 480px) {
-        font-size: 16px;
-      }
-    }
-
-    .hero__cta {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--background-color);
-      background-color: var(--accent-color);
-      padding: 15px 35px;
-      text-decoration: none;
-      border-radius: 50px;
-      display: inline-block;
-      transition: background-color 0.3s ease;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-
-      &:hover {
-        background-color: var(--secondary-hover-color);
-      }
-
-      @media (max-width: 768px) {
-        font-size: 16px;
-        padding: 12px 30px;
-      }
-
-      @media (max-width: 480px) {
-        font-size: 14px;
-        padding: 10px 25px;
-      }
-    }
-  }
-
-  // --- Mobile Version ---
-  @media (max-width: 480px) {
-    .hero__content {
-      padding: 10px;
-    }
-
-    .hero__background {
-      height: 200px;
-    }
-  }
-
-  // --- Tablet Version ---
-  @media (min-width: 481px) and (max-width: 768px) {
-    .hero__background {
-      height: 250px;
-    }
-
-    .hero__title {
-      font-size: 32px;
-    }
-
-    .hero__subtitle {
-      font-size: 18px;
-    }
-
-    .hero__cta {
-      font-size: 16px;
-    }
-  }
-
-  // --- Desktop Version ---
-  @media (min-width: 769px) {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: flex-start;
-    text-align: left;
-    padding: 80px;
-
-    .hero__background {
-      width: 100%;  // Cambio aquí para que ocupe todo el fondo
-      height: 100vh; // Cambio aquí para que ocupe toda la altura de la ventana
-    }
-
-    .hero__content {
-      max-width: 600px;
-      margin-left: 30px;
-    }
-
-    .hero__title {
-      font-size: 56px;
-      text-transform: capitalize;
-      margin-bottom: 30px;
-    }
-
-    .hero__subtitle {
-      font-size: 24px;
-      margin-bottom: 40px;
-    }
-
-    .hero__cta {
-      font-size: 22px;
-      padding: 20px 50px;
-    }
-  }
-}
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_footer.scss
-
-Contenido:
-// src/scss/components/_footer.scss
-.footer {
-  background-color: var(--primary-color);
-  color: var(--background-color);
-  text-align: center;
-  padding: 1.5rem;
-  font-size: 0.9rem;
-  letter-spacing: 0.5px;
-  border-top: 1px solid var(--secondary-hover-color);
-}
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_product.scss
-
-Contenido:
-// src/scss/components/_product.scss
-
-.product-card {
-  background-color: var(--background-color);
-  border: 1px solid var(--primary-color);
-  border-radius: 10px;
-  overflow: hidden;
-  transition: transform 0.3s, box-shadow 0.3s;
-  max-width: 300px; /* Ancho máximo para evitar que se vea gigante */
-  margin: 1rem auto; /* Centrado y espacio alrededor */
-  display: flex;
-  flex-direction: column;
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  }
-
-  &__image {
-    width: 100%;
-    position: relative;
-    height: 160px; /* Fijamos la altura para la imagen */
-    overflow: hidden;
-  }
-
-  &__info {
-    padding: 0.75rem;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-
-    h3 {
-      margin: 0;
-      font-size: 1.1rem;
-      color: var(--primary-color);
-    }
-
-    p {
-      margin: 0.5rem 0;
-      font-size: 0.85rem;
-      color: var(--text-color);
-    }
-
-    .price {
-      font-weight: bold;
-      margin-bottom: 0.5rem;
-    }
-
-    .btn {
-      display: inline-block;
-      padding: 0.5rem 1rem;
-      background-color: var(--secondary-color);
-      color: var(--background-color);
-      border-radius: 50px;
-      text-transform: uppercase;
-      font-size: 0.8rem;
-      text-decoration: none;
-      transition: background-color 0.3s;
-      margin-top: auto;
-      align-self: flex-start;
-    }
-
-    .btn:hover {
-      background-color: var(--secondary-hover-color);
-    }
-  }
-}
-
-
-.product-grid__list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1rem;
-  padding: 1rem;
-}
-
-
-// src/scss/components/_product.scss
-
-/* Contenedor en grid para la lista de productos */
-.product-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
-  padding: 2rem;
-}
-
-/* Tarjeta de producto */
-.product-card {
-  background-color: var(--background-color);
-  border: 1px solid var(--secondary-hover-color);
-  border-radius: 8px;
-  overflow: hidden;
-  transition: transform 0.3s, box-shadow 0.3s;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  }
-
-  &__link {
-    text-decoration: none;
-    color: inherit;
-  }
-
-  &__image-container {
-    position: relative;
-    overflow: hidden;
-  }
-
-  &__image {
-    width: 100%;
-    height: 180px;
-    object-fit: cover;
-    transition: transform 0.3s;
-  }
-
-  &:hover .product-card__image {
-    transform: scale(1.05);
-  }
-
-  &__overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.4);
-    opacity: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.3s;
-  }
-
-  &:hover .product-card__overlay {
-    opacity: 1;
-  }
-
-  &__quick-view {
-    color: var(--background-color);
-    font-size: 1.1rem;
-    background: var(--accent-color);
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  &__info {
-    padding: 1rem;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-
-  &__title {
-    font-size: 1.2rem;
-    margin-bottom: 0.5rem;
-    color: var(--primary-color);
-  }
-
-  &__description {
-    font-size: 0.9rem;
-    color: var(--text-color);
-    margin-bottom: 1rem;
-  }
-
-  &__price {
-    font-size: 1rem;
-    font-weight: bold;
-    color: var(--accent-color);
-  }
-}
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_themeToggle.scss
-
-Contenido:
-// src/scss/components/_themeToggle.scss
-.theme-toggle {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  width: 3.5rem;
-  height: 3.5rem;
-  border: none;
-  border-radius: 50%;
-  background-color: var(--accent-color);
-  color: var(--background-color);
-  font-size: 1.5rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 6px 12px rgba(0,0,0,0.3);
-  transition: transform 0.2s, background-color 0.3s;
-  z-index: 4000;
-  
-  &:hover {
-    transform: scale(1.1);
-    background-color: var(--secondary-color);
-  }
-}
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_full_zoom_image.scss
-
-Contenido:
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_cart.scss
-
-Contenido:
-.cart {
-    padding: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
-  
-    h2 {
-      text-align: center;
-      margin-bottom: 2rem;
-      color: var(--primary-color);
-    }
-  
-    &__content {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 2rem;
-    }
-  
-    &__items {
-      flex: 2;
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-  
-    &__item {
-      display: flex;
-      gap: 1rem;
-      padding: 1rem;
-      border: 1px solid var(--secondary-hover-color);
-      border-radius: 10px;
-      background-color: var(--background-color);
-  
-      &-image {
-        width: 120px;
-        height: 120px;
-        object-fit: cover;
-        border-radius: 5px;
-      }
-  
-      &-info {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-  
-        h3 {
-          margin: 0 0 0.5rem 0;
-          color: var(--primary-color);
-        }
-  
-        p {
-          margin: 0.25rem 0;
-          color: var(--text-color);
-        }
-      }
-    }
-  
-    &__summary {
-      flex: 1;
-      border: 1px solid var(--secondary-hover-color);
-      border-radius: 10px;
-      padding: 1.5rem;
-      background-color: var(--background-color);
-      height: fit-content;
-  
-      h3 {
-        margin-top: 0;
-        color: var(--primary-color);
-      }
-  
-      p {
-        margin: 1rem 0;
-        font-size: 1.1rem;
-        color: var(--text-color);
-      }
-  
-      .btn {
-        display: block;
-        width: 100%;
-        text-align: center;
-        padding: 0.75rem;
-        background-color: var(--secondary-color);
-        color: var(--background-color);
-        border-radius: 50px;
-        text-transform: uppercase;
-        font-weight: 600;
-        transition: background-color 0.3s;
-        text-decoration: none;
-        margin-top: 1rem;
-      }
-  
-      .btn:hover {
-        background-color: var(--secondary-hover-color);
-      }
-    }
-  }
-  
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_productAdvanced.scss
-
-Contenido:
-.products-advanced {
-  display: grid;
-  grid-template-columns: 250px 1fr;
-  gap: 2rem;
-  padding: 2rem;
-
-  .sidebar {
-    background-color: var(--background-color);
-    border: 1px solid var(--secondary-hover-color);
-    border-radius: 8px;
-    padding: 1.5rem;
-    height: fit-content;
-
-    h3 {
-      margin-bottom: 1rem;
-      color: var(--primary-color);
-      font-size: 1.25rem;
-    }
-
-    .filter-section {
-      margin-bottom: 1.5rem;
-
-      label {
-        display: block;
-        font-weight: bold;
-        margin-bottom: 0.5rem;
-        color: var(--primary-color);
-      }
-
-      ul {
-        list-style: none;
-        padding: 0;
-
-        li {
-          padding: 0.5rem;
-          cursor: pointer;
-          border-radius: 4px;
-          transition: background-color 0.3s, color 0.3s;
-
-          &:hover,
-          &.active {
-            background-color: var(--accent-color);
-            color: var(--background-color);
-          }
-        }
-      }
-
-      input,
-      select {
-        width: 100%;
-        padding: 0.5rem;
-        border: 1px solid var(--secondary-hover-color);
-        border-radius: 4px;
-        background-color: var(--background-color);
-        color: var(--text-color);
-      }
-    }
-  }
-
-  .products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1.5rem;
-  }
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    .sidebar {
-      margin-bottom: 1.5rem;
-    }
-  }
-}
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_productGrid.scss
-
-Contenido:
-.product-grid-creative {
-    padding: 4rem 2rem;
-    opacity: 0;
-    transform: translateY(50px);
-    transition: all 0.8s ease-out;
-  
-    &.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  
-    .collection-intro {
-      text-align: center;
-      margin-bottom: 2rem;
-    
-      h2,
-      p {
-        color: var(--primary-color);
-      }
-    }
-    
-    html.theme-dark .collection-intro {
-      h2,
-      p {
-        color: var(--primary-color);
-      }
-    }
-      
-    &__list {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.5rem;
-    }
-  }
-  
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_productList.scss
-
-Contenido:
-// src/scss/components/_productList.scss
-
-.product-list {
-  padding: 2rem;
-
-  &__controls {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-
-    @media (min-width: 768px) {
-      flex-direction: row;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .product-list__search-sort {
-      display: flex;
-      gap: 1rem;
-
-      input {
-        padding: 0.75rem;
-        border: 1px solid var(--secondary-hover-color);
-        border-radius: 4px;
-        flex: 1;
-      }
-
-      select {
-        padding: 0.75rem;
-        border: 1px solid var(--secondary-hover-color);
-        border-radius: 4px;
-      }
-    }
-  }
-
-  &__grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 2rem;
-  }
-}
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_checkout.scss
-
-Contenido:
-.checkout {
-    padding: 2rem;
-    max-width: 600px;
-    margin: 0 auto;
-    background-color: var(--background-color);
-    border: 1px solid var(--secondary-hover-color);
-    border-radius: 10px;
-  
-    h2 {
-      text-align: center;
-      margin-bottom: 2rem;
-      color: var(--primary-color);
-    }
-  
-    &__form {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-  
-      .checkout__group {
-        display: flex;
-        flex-direction: column;
-  
-        label {
-          margin-bottom: 0.5rem;
-          font-weight: bold;
-          color: var(--primary-color);
-        }
-  
-        input,
-        select {
-          padding: 0.75rem;
-          border: 1px solid var(--secondary-hover-color);
-          border-radius: 5px;
-          font-size: 1rem;
-          color: var(--text-color);
-          background-color: var(--background-color);
-          transition: border-color 0.3s;
-        }
-  
-        input:focus,
-        select:focus {
-          outline: none;
-          border-color: var(--accent-color);
-        }
-      }
-  
-      .checkout__submit {
-        margin-top: 1rem;
-        background-color: var(--secondary-color);
-        color: var(--background-color);
-        border: none;
-        border-radius: 50px;
-        padding: 1rem;
-        text-transform: uppercase;
-        font-weight: bold;
-        transition: background-color 0.3s;
-        cursor: pointer;
-      }
-  
-      .checkout__submit:hover {
-        background-color: var(--secondary-hover-color);
-      }
-    }
-  }
-  
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_product_detaills.scss
-
-Contenido:
-.product-detail {
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  font-family: 'Roboto', sans-serif;
-
-  &__container {
-    display: flex;
-    gap: 2rem;
-    align-items: flex-start;
-    flex-wrap: wrap;
-    background: var(--background-color);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    padding: 2rem;
-    border-radius: 8px;
-  }
-
-  &__viewer {
-    flex: 1 1 500px;
-    max-width: 500px;
-  }
-
-  &__info {
-    flex: 1 1 300px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-
-    & > * + * {
-      margin-top: 1rem;
-    }
-  }
-
-  &__title {
-    font-size: 2rem;
-    color: var(--primary-color);
-    margin: 0;
-  }
-
-  &__description {
-    font-size: 1rem;
-    color: var(--text-color);
-    line-height: 1.5;
-  }
-
-  &__price {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--primary-color);
-  }
-
-  &__extra {
-    display: flex;
-    gap: 2rem;
-    margin: 1rem 0;
-  }
-
-  &__sizes,
-  &__stock {
-    flex: 1;
-  }
-
-  &__subtitle {
-    font-size: 1.1rem;
-    color: var(--primary-color);
-    margin-bottom: 0.5rem;
-  }
-
-  &__size-list {
-    list-style: none;
-    padding: 0;
-    display: flex;
-    gap: 0.5rem;
-    margin: 0;
-  }
-
-  &__size-item {
-    padding: 0.5rem 1rem;
-    border: 1px solid var(--secondary-hover-color);
-    border-radius: 4px;
-    font-size: 0.9rem;
-    color: var(--text-color);
-  }
-
-  &__stock-info {
-    font-size: 0.9rem;
-    color: var(--text-color);
-  }
-
-  &__add-to-cart {
-    padding: 0.75rem 1.5rem;
-    background-color: var(--secondary-color);
-    color: var(--background-color);
-    border: none;
-    border-radius: 50px;
-    text-transform: uppercase;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    align-self: start;
-
-    &:hover {
-      background-color: var(--secondary-hover-color);
-    }
-  }
-
-  &__gallery {
-    display: flex;
-    gap: 1rem;
-    margin-top: 2rem;
-    justify-content: center;
-  }
-
-  &__thumb {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    border: 2px solid transparent;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: border-color 0.3s;
-
-    &.selected {
-      border-color: var(--accent-color);
-    }
-  }
-  .product-detail__size-item {
-    cursor: pointer;
-    padding: 0.5rem 1rem;
-    border: 1px solid var(--secondary-hover-color);
-    border-radius: 4px;
-    transition: background-color 0.3s;
-  }
-  
-  .product-detail__size-item.selected {
-    background-color: var(--accent-color);
-    color: var(--background-color);
-  }
-  
-  &__notfound {
-    text-align: center;
-    font-size: 1.5rem;
-    color: var(--text-color);
-    margin: 2rem 0;
-  }
-}
-
-/* Ajustes para pantallas hasta 768px (tablets) */
-@media (max-width: 768px) {
-  .product-detail {
-    padding: 1rem;
-  }
-  .product-detail__container {
-    flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
-  }
-  .product-detail__viewer,
-  .product-detail__info {
-    flex: 1 1 100%;
-    max-width: 100%;
-  }
-  .product-detail__title {
-    font-size: 1.5rem;
-  }
-  .product-detail__description {
-    font-size: 0.9rem;
-  }
-  .product-detail__price {
-    font-size: 1.2rem;
-  }
-  .product-detail__extra {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  .product-detail__gallery {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-  .product-detail__thumb {
-    width: 60px;
-    height: 60px;
-  }
-}
-
-/* Enfocándonos en móviles (hasta 480px) */
-@media (max-width: 480px) {
-  /* Asegura que el contenedor del viewer ocupe el ancho completo sin causar scroll */
-  .product-detail__viewer {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 auto;
-  }
-  
-  /* Forzar que el contenedor de FullZoomImage se ajuste al ancho del dispositivo */
-  .full-zoom-image-container {
-    width: 100% !important;
-    height: auto !important;
-  }
-
-  /* Asegura que la imagen dentro de FullZoomImage se ajuste correctamente */
-  .full-zoom-image-container img {
-    width: 100%;
-    height: auto;
-    object-fit: cover;
-  }
 }
 
 

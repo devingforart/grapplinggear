@@ -1,4 +1,3 @@
-// src/components/Checkout.tsx
 import React, { useState } from 'react';
 
 const Checkout: React.FC = () => {
@@ -89,13 +88,14 @@ const Checkout: React.FC = () => {
             onChange={handleChange}
             required
           >
-            <option value="">Selecciona un país</option>
             <option value="AR">Argentina</option>
             <option value="US">Estados Unidos</option>
             <option value="ES">España</option>
           </select>
         </div>
-        <button type="submit" className="btn checkout__submit">Realizar Pedido</button>
+        <button type="submit" className="btn checkout__submit">
+          Realizar Pedido
+        </button>
       </form>
     </div>
   );
