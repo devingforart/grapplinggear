@@ -1,7 +1,6 @@
 // src/store/index.ts
 import { createStore, combineReducers } from 'redux';
 import { Product } from '../types/product';
-import prods from '../components/products.json';
 
 // Definir las interfaces para el estado del carrito y productos
 interface CartItem {

@@ -1,4 +1,3 @@
-// src/pages/ProductDetail.tsx
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
@@ -9,14 +8,17 @@ import { InventoryContext } from '../context/InventoryContext';
 import { useNotification } from '../context/NotificationContext';
 import { loadProducts } from '../store'; // Cambié esto de fetchProducts a loadProducts
 
+// Importa los productos si están en un archivo (por ejemplo, products.json)
+import productsData from '../components/products.json'; // Asegúrate de que este archivo exista
+
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const dispatch = useDispatch();
 
-  // Get products from Redux state, or use default empty array
+  // Obtener productos desde el estado de Redux o usar un array vacío por defecto
   const products: Product[] = useSelector((state: any) => state.products.products || []);
   
-  // Find the specific product by ID
+  // Buscar el producto específico por ID
   const product = products.find(item => item.id.toString() === id);
 
   const { addToCart } = useContext(CartContext);
@@ -26,10 +28,11 @@ const ProductDetail: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState(product?.images[0] || '');
   const [selectedSize, setSelectedSize] = useState<string>('');
 
-  // Fetch products if not in Redux state
+  // Fetch de productos si no están en el estado de Redux
   useEffect(() => {
     if (!products.length) {
-      dispatch(loadProducts(productsData.products)); // Usar loadProducts para cargar productos
+      // Aquí pasamos solo la propiedad products de productsData
+      dispatch(loadProducts(productsData.products)); // Accedemos a 'products' dentro de 'productsData'
     }
   }, [dispatch, products.length]);
 
