@@ -4,6 +4,14 @@ import { Link } from 'react-router-dom';
 import { Product } from '../types/product';
 
 const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
+
+
+    // Función para formatear el precio con el signo de pesos y separadores de miles
+    const formatPrice = (price: number) => {
+      return `$${price.toLocaleString('es-AR')}`; // Utiliza 'es-AR' para formato con separadores de miles
+    };
+  
+
   return (
     <div className="product-card">
       <Link to={`/producto/${product.id}`} className="product-card__link">
@@ -23,7 +31,7 @@ const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
         <p className="product-card__description">
           {product.description.substring(0, 70)}...
         </p>
-        <div className="product-card__price">${product.price}</div>
+        <div className="product-card__price">{formatPrice(product.price)}</div>
       </div>
     </div>
   );

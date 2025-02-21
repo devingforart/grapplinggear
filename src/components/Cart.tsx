@@ -19,6 +19,11 @@ const Cart: React.FC = () => {
     }
   };
 
+  // Función para formatear el precio con el signo de pesos y separadores de miles
+  const formatPrice = (price: number) => {
+    return `$${price.toLocaleString('es-AR')}`; // Utiliza 'es-AR' para formato con separadores de miles
+  };
+
   return (
     <div className="cart">
       <motion.h2 
@@ -45,7 +50,7 @@ const Cart: React.FC = () => {
                 <div className="cart__item-info">
                   <h3>{item.product.name}</h3>
                   <p>Talle: {item.size}</p>
-                  <p>Precio: ${item.product.price}</p>
+                  <p>Precio: {formatPrice(item.product.price)}</p> {/* Usamos la función para formatear el precio */}
                   <div className="cart__quantity">
                     <input
                       type="number"
@@ -72,7 +77,7 @@ const Cart: React.FC = () => {
           </div>
           <div className="cart__summary">
             <h3>Resumen</h3>
-            <p className="cart__subtotal">Subtotal: ${subtotal}</p>
+            <p className="cart__subtotal">Subtotal: {formatPrice(subtotal)}</p> {/* Formateamos el subtotal */}
             <div className="cart__actions">
               <button
                 onClick={clearCart}

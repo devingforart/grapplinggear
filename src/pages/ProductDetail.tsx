@@ -39,6 +39,11 @@ const ProductDetail: React.FC = () => {
     return;
   };
 
+    // Función para formatear el precio con el signo de pesos y separadores de miles
+    const formatPrice = (price: number) => {
+      return `$${price.toLocaleString('es-AR')}`; // Utiliza 'es-AR' para formato con separadores de miles
+    };
+
   return (
     <div className="product-detail">
       <div className="product-detail__container">
@@ -53,7 +58,7 @@ const ProductDetail: React.FC = () => {
         <div className="product-detail__info">
           <h2 className="product-detail__title">{product.name}</h2>
           <p className="product-detail__description">{product.description}</p>
-          <p className="product-detail__price">${product.price}</p>
+          <p className="product-detail__price">{formatPrice(product.price)}</p>
           <div className="product-detail__extra">
             <div className="product-detail__sizes">
               <h3 className="product-detail__subtitle">Talles Disponibles</h3>

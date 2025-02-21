@@ -1,11 +1,18 @@
 import os
 
+
+
 files_to_process = [
+
+
+"/home/southatoms/Escritorio/develop/personal/grappling-gear/src"
+
+]
+
+direx = [    
 "/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_cart.scss",
 "/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_cart.scss",
 "/home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/_variables.scss"
-
-
 ]
 
 file_extensions = ['scss','tsx','json' ]
