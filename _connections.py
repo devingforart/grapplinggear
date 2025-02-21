@@ -2,7 +2,6 @@ import os
 
 files_to_process = [
 "/home/southatoms/Escritorio/develop/personal/grappling-gear/src",
-"src/components/products.json"
 
 ]
 

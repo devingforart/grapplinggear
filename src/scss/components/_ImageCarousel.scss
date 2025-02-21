@@ -1,4 +1,3 @@
-/* src/scss/components/ImageCarousel.scss */
 .image-carousel {
   position: relative;
   width: 100%;
@@ -6,12 +5,11 @@
   margin: 0 auto;
   overflow: hidden;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  object-fit: fill;
 }
 
 .image-carousel__wrapper {
-  width: 100%;
-  height: 100%;
+
   overflow: hidden;
   display: flex;
   justify-content: center;
@@ -22,37 +20,6 @@
   height: 100%;
   object-fit: cover;
   transition: opacity 0.5s ease-in-out;
-}
-
-.image-carousel__controls {
-  position: absolute;
-  top: 50%;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  transform: translateY(-50%);
-  z-index: 10;
-}
-
-.image-carousel__button {
-  background: rgba(0, 0, 0, 0.3);
-  border: none;
-  color: white;
-  font-size: 2rem;
-  padding: 10px;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  opacity: 0.8;
-
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.6);
-    transform: scale(1.1);
-  }
-
-  &:focus {
-    outline: none;
-  }
 }
 
 .image-carousel__indicators {
@@ -67,7 +34,6 @@
 .indicator {
   width: 12px;
   height: 12px;
-  background-color: rgba(255, 255, 255, 0.6);
   border-radius: 50%;
   cursor: pointer;
   transition: background-color 0.3s ease;
@@ -83,20 +49,7 @@
   }
 }
 
-/* Responsividad */
-@media (max-width: 768px) {
-  .image-carousel__button {
-    font-size: 1.5rem;
-    padding: 8px;
-  }
-
-  .indicator {
-    width: 10px;
-    height: 10px;
-  }
-
-  .indicator.active {
-    width: 12px;
-    height: 12px;
-  }
+/* Elimina el estilo para las flechas, si ya no las necesitas */
+.image-carousel__controls {
+  display: none; /* Esto oculta los controles de las flechas */
 }

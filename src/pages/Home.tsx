@@ -10,7 +10,7 @@ const Home: React.FC = () => {
   const newProducts = productsData.products.filter(product => product.new);
 
   // Extraer solo las imágenes para el carrusel
-  const newProductImages = newProducts.flatMap(product => product.images[0]);
+  const newProductImages = newProducts.flatMap(product => product.images);
 
   return (
     <div className="home">

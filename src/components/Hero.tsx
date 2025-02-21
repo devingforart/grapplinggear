@@ -1,4 +1,3 @@
-// src/components/Hero.tsx
 import React from 'react';
 import ImageCarousel from './ImageCarousel';
 import '../scss/components/_hero.scss';
@@ -14,7 +13,7 @@ const Hero: React.FC<HeroProps> = ({ images }) => {
         <ImageCarousel images={images} />
       </div>
       <div className="hero__content">
-        <h1 className="hero__title">Descubre la Innovación en Grappling</h1>
+        <h1 className="hero__title">Innovación en Grappling</h1>
         <p className="hero__subtitle">Equipamiento premium para el guerrero moderno</p>
         <a href="#nuestra-coleccion" className="hero__cta">Explora ahora</a>
       </div>

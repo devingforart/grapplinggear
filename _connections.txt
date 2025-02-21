@@ -169,7 +169,7 @@ const Home: React.FC = () => {
   const newProducts = productsData.products.filter(product => product.new);
 
   // Extraer solo las imágenes para el carrusel
-  const newProductImages = newProducts.flatMap(product => product.images[0]);
+  const newProductImages = newProducts.flatMap(product => product.images);
 
   return (
     <div className="home">
@@ -768,32 +768,27 @@ export default FullZoomImage;
 /home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/ImageCarousel.tsx
 
 Contenido:
-// src/components/ImageCarousel.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface ImageCarouselProps {
   images: string[];
 }
 
 const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
-  // Si no hay imágenes, retornamos null o un mensaje alternativo
   if (!images || images.length === 0) {
     return <div className="image-carousel__empty">No hay imágenes disponibles</div>;
   }
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  // Función para avanzar a la siguiente imagen
-  const nextImage = () => {
-    setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
-  };
+  // Cambiar imagen cada 3 segundos
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+    }, 3000);
 
-  // Función para retroceder a la imagen anterior
-  const prevImage = () => {
-    setCurrentImageIndex(
-      (prevIndex) => (prevIndex - 1 + images.length) % images.length
-    );
-  };
+    return () => clearInterval(intervalId); // Limpiar intervalo al desmontar el componente
+  }, [images.length]);
 
   return (
     <div className="image-carousel">
@@ -803,22 +798,6 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
           alt={`Hero Image ${currentImageIndex + 1}`}
           className="image-carousel__image"
         />
-      </div>
-      <div className="image-carousel__controls">
-        <button
-          onClick={prevImage}
-          className="image-carousel__button prev-button"
-          aria-label="Previous Image"
-        >
-          &#8249;
-        </button>
-        <button
-          onClick={nextImage}
-          className="image-carousel__button next-button"
-          aria-label="Next Image"
-        >
-          &#8250;
-        </button>
       </div>
       <div className="image-carousel__indicators">
         {images.map((_, index) => (
@@ -1324,7 +1303,7 @@ const Hero: React.FC<HeroProps> = ({ images }) => {
       </div>
       <div className="hero__content">
         <h1 className="hero__title">Descubre la Innovación en Grappling</h1>
-        <p className="hero__subtitle">Equipamiento de alta calidad para el guerrero moderno</p>
+        <p className="hero__subtitle">Equipamiento premium para el guerrero moderno</p>
         <a href="#nuestra-coleccion" className="hero__cta">Explora ahora</a>
       </div>
     </section>
@@ -1926,7 +1905,6 @@ Contenido:
 /home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_ImageCarousel.scss
 
 Contenido:
-/* src/scss/components/ImageCarousel.scss */
 .image-carousel {
   position: relative;
   width: 100%;
@@ -1934,12 +1912,11 @@ Contenido:
   margin: 0 auto;
   overflow: hidden;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  object-fit: fill;
 }
 
 .image-carousel__wrapper {
-  width: 100%;
-  height: 100%;
+
   overflow: hidden;
   display: flex;
   justify-content: center;
@@ -1950,37 +1927,6 @@ Contenido:
   height: 100%;
   object-fit: cover;
   transition: opacity 0.5s ease-in-out;
-}
-
-.image-carousel__controls {
-  position: absolute;
-  top: 50%;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  transform: translateY(-50%);
-  z-index: 10;
-}
-
-.image-carousel__button {
-  background: rgba(0, 0, 0, 0.3);
-  border: none;
-  color: white;
-  font-size: 2rem;
-  padding: 10px;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  opacity: 0.8;
-
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.6);
-    transform: scale(1.1);
-  }
-
-  &:focus {
-    outline: none;
-  }
 }
 
 .image-carousel__indicators {
@@ -1995,7 +1941,6 @@ Contenido:
 .indicator {
   width: 12px;
   height: 12px;
-  background-color: rgba(255, 255, 255, 0.6);
   border-radius: 50%;
   cursor: pointer;
   transition: background-color 0.3s ease;
@@ -2011,22 +1956,9 @@ Contenido:
   }
 }
 
-/* Responsividad */
-@media (max-width: 768px) {
-  .image-carousel__button {
-    font-size: 1.5rem;
-    padding: 8px;
-  }
-
-  .indicator {
-    width: 10px;
-    height: 10px;
-  }
-
-  .indicator.active {
-    width: 12px;
-    height: 12px;
-  }
+/* Elimina el estilo para las flechas, si ya no las necesitas */
+.image-carousel__controls {
+  display: none; /* Esto oculta los controles de las flechas */
 }
 
 
@@ -2443,124 +2375,164 @@ Contenido:
 /home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_hero.scss
 
 Contenido:
-/* src/scss/components/_hero.scss */
-.hero {
-  position: relative;
-  width: 100%;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  background-color: var(--background-color);
+// src/scss/components/_hero.scss
 
-  /* Imagen de fondo con carrusel */
+@import '../variables';
+
+.hero {
+  @include theme($light-colors);
+  
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  background-color: transparent;
+  padding: 0;  // Elimina el padding para que las imágenes cubran toda la sección.
+  overflow: hidden;
+
   .hero__background {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 0;
-    object-fit: cover;
-    opacity: 0.4;  // Reducir la visibilidad para que el texto resalte más
-
-    /* Aquí controlamos el tamaño y la posición de la imagen */
-    background-size: 120%;  /* Aleja la imagen, puedes usar un valor mayor o menor */
-    background-position: center center;  /* Centra la imagen */
+    z-index: -1;
+    display: flex; // Hacemos que el contenedor del carrusel ocupe toda la sección.
   }
 
-  /* Contenido */
   .hero__content {
-    position: relative;
-    z-index: 2;
-    text-align: center;
-    color: var(--background-color); // Blanco para el texto
-    padding: 1rem;
-    max-width: 800px;
-    width: 100%;
-    opacity: 0.95;
+    max-width: 1200px;
+    padding: 20px;
+    margin: 0 auto;
+    z-index: 1;  // Asegura que el contenido esté por encima de las imágenes.
 
     .hero__title {
-      font-size: 3rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      margin-bottom: 1.5rem;
+      font-size: 40px;
+      font-weight: 700;
       color: var(--primary-color);
-      text-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      line-height: 1.2;
+
+      @media (max-width: 768px) {
+        font-size: 30px;
+      }
+
+      @media (max-width: 480px) {
+        font-size: 24px;
+      }
     }
 
     .hero__subtitle {
-      font-size: 1.25rem;
+      font-size: 20px;
+      font-weight: 300;
       color: var(--secondary-color);
-      margin-bottom: 2rem;
-      font-weight: 400;
+      margin-bottom: 30px;
       line-height: 1.5;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+      @media (max-width: 768px) {
+        font-size: 18px;
+      }
+
+      @media (max-width: 480px) {
+        font-size: 16px;
+      }
     }
 
     .hero__cta {
-      font-size: 1rem;
+      font-size: 18px;
       font-weight: 600;
-      padding: 12px 30px;
-      background-color: var(--accent-color);
       color: var(--background-color);
+      background-color: var(--accent-color);
+      padding: 15px 35px;
       text-decoration: none;
       border-radius: 50px;
+      display: inline-block;
+      transition: background-color 0.3s ease;
       text-transform: uppercase;
       letter-spacing: 1px;
-      transition: all 0.3s ease;
-      display: inline-block;
 
       &:hover {
-        background-color: var(--secondary-color);
-        transform: translateY(-3px);
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+        background-color: var(--secondary-hover-color);
       }
 
-      &:focus {
-        outline: none;
-        box-shadow: 0 0 0 3px var(--secondary-color);
+      @media (max-width: 768px) {
+        font-size: 16px;
+        padding: 12px 30px;
+      }
+
+      @media (max-width: 480px) {
+        font-size: 14px;
+        padding: 10px 25px;
       }
     }
   }
 
-  /* Animaciones */
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
+  // --- Mobile Version ---
+  @media (max-width: 480px) {
+    .hero__content {
+      padding: 10px;
     }
-    to {
-      opacity: 1;
+
+    .hero__background {
+      height: 200px;
     }
   }
 
-  /* Responsividad */
-  @media (max-width: 768px) {
+  // --- Tablet Version ---
+  @media (min-width: 481px) and (max-width: 768px) {
+    .hero__background {
+      height: 250px;
+    }
+
     .hero__title {
-      font-size: 2.2rem;
-      margin-bottom: 1rem;
+      font-size: 32px;
     }
 
     .hero__subtitle {
-      font-size: 1.1rem;
-      margin-bottom: 1.5rem;
+      font-size: 18px;
     }
 
     .hero__cta {
-      font-size: 1rem;
-      padding: 10px 25px;
+      font-size: 16px;
     }
   }
 
-  @media (max-width: 480px) {
+  // --- Desktop Version ---
+  @media (min-width: 769px) {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    text-align: left;
+    padding: 80px;
+
+    .hero__background {
+      width: 100%;  // Cambio aquí para que ocupe todo el fondo
+      height: 100vh; // Cambio aquí para que ocupe toda la altura de la ventana
+    }
+
+    .hero__content {
+      max-width: 600px;
+      margin-left: 30px;
+    }
+
     .hero__title {
-      font-size: 1.8rem;
+      font-size: 56px;
+      text-transform: capitalize;
+      margin-bottom: 30px;
     }
 
     .hero__subtitle {
-      font-size: 1rem;
+      font-size: 24px;
+      margin-bottom: 40px;
+    }
+
+    .hero__cta {
+      font-size: 22px;
+      padding: 20px 50px;
     }
   }
 }
@@ -3362,195 +3334,6 @@ Contenido:
     height: auto;
     object-fit: cover;
   }
-}
-
-
---------------------------------------------------------------------------------
-
-src/components/products.json
-
-Contenido:
-{
-  "products": [
-    {
-      "id": 1,
-      "name": "Future Kimonos v1.0  BLACK Short Sleeve Rash Guard",
-      "category": "Rashguard",
-      "description": "Short sleeve black Jiu Jitsu rash guard with clean design and engineered with FUTURE technology materials for a hard wearing Jiu Jitsu player. The minimalist style rash guard combined with the design from John Lacko brings the old and new together.",
-      "price": 100,
-      "images": [
-        "/pictures/ArtBoard/Artboard1Blackfront.webp",
-        "/pictures/ArtBoard/Artboard1BlackSide.webp"
-      ],
-      "availableSizes": ["S", "M", "L", "XL"],
-      "stockBySize": {
-        "S": 4,
-        "M": 4,
-        "L": 4,
-        "XL": 3
-      },
-      "new": false
-
-    },
-    {
-      "id": 2,
-      "name": "Future Kimonos v1.0 - WHITE Short Sleeve Rash Guard",
-      "category": "Rashguard",
-      "description": "Short sleeve white Jiu Jitsu rash guard with clean design and engineered with FUTURE technology materials for a hard wearing Jiu Jitsu player. The minimalist style rash guard combined with the design from John Lacko brings the old and new together.",
-      "price": 60,
-      "images": [
-        "/pictures/ArtBoard/Artboard1WhitefrontWhite.webp",
-        "/pictures/ArtBoard/Artboard1WhitesideWhite.webp"
-      ],
-      "availableSizes": ["S", "M", "L", "XL"],
-      "stockBySize": {
-        "S": 5,
-        "M": 5,
-        "L": 5,
-        "XL": 5
-      },
-      "new": true
-
-    },
-    {
-      "id": 3,
-      "name": "Gordon Ryan ADCC 2022 - Gold Short Sleeve Rash Guard",
-      "category": "Rashguard",
-      "description": "GORDON RYAN ADCC 2022 Designed for ADCC 2022 as part of the 2022 Gordon Ryan x Future Kimonos 5 piece collection, made using our most premium grade MATTE fabric, moisture wicking and nano-silver coated, built with grappling specific smoothseam work for durability and strength, this rash guard is made in the SHORT SLEEVE variation of our most popular cut and fit. Expect this premium rash guard to feel buttery smooth with our matte material, feeling soft and light for grappling. Colors may slightly vary from rendered images, but this design is intended to have a more pastel color palette. Available to preview using our cutting edge 3D Future Viewer Technology, allowing you to change in real-time custom fields and see the exact configuration of your product before you buy. 3 customization fields are available with this product, including your name on the back, social tag below your name, and your country flag on the sleeve. This is truly a chance to have your own one of a kind competition set that you can proudly wear during competition or training time. With so many colors, pattern and custom variations, you are guaranteed to stand out from the rest. To create your own CUSTOM one of a kind rash guard, simply choose a style in your size that suits you, complete the form with your name, social, and country details, then add the item to the cart before checking out. We take care of the rest.",
-      "price": 40,
-      "images": [
-        "/pictures/gordobrian/dorada_front.webp"
-      ],
-      "availableSizes": ["S", "M", "L"],
-      "stockBySize": {
-        "S": 10,
-        "M": 10,
-        "L": 10
-      },
-      "new": false
-
-    },
-    {
-      "id": 4,
-      "name": "Kingz Draft Rashguard",
-      "category": "Rashguard",
-      "description": "Durable polyester/spandex fabric Snug athletic fit Fully sublimated graphics Material: 80% Polyester, 20% Spandex *Please follow wash and care instructions to ensure the longevity of your rash guard.",
-      "price": 40,
-      "images": [
-        "/pictures/kingz/draft_rash_front/DSC_6926_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6932_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6933_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6938_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6940_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6942_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6944_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6948_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6949_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6950_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6951_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6952_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6955_1620x.webp"
-      ],
-      "availableSizes": ["M", "L", "XL"],
-      "stockBySize": {
-        "M": 8,
-        "L": 9,
-        "XL": 8
-      },
-      "new": false
-
-    },
-    {
-      "id": 5,
-      "name": "Gordon Ryan ADCC 2024 Black - Short Sleeve Rash Guard",
-      "category": "Rashguard",
-      "description": "Introducing the official kit for Gordon Ryan ADCC super-fights in 2024. This short sleeve rash guard is made with competition spec fabric, moisture-wicking for optimal performance. Engineered for peak performance. A must-have for competing at the ADCC 2024 super-fights (or just training at your academy), this short sleeve rash guard is constructed with competition spec fabric and moisture-wicking capabilities. Stay cool, dry, and comfortable while you dominate the competition. Expect this premium rash guard to feel buttery smooth with our matte material, feeling soft and light for grappling. Colors may slightly vary from rendered images, but this design is intended to have a more pastel color palette.",
-      "price": 40,
-      "images": [
-        "/pictures/gordobrian/negra/blackgordonusaSSback.webp",
-        "/pictures/gordobrian/negra/blackgordonusaSSfront.webp"
-      ],
-      "availableSizes": ["S", "M", "L"],
-      "stockBySize": {
-        "S": 6,
-        "M": 6,
-        "L": 6
-      },
-      "new": true
-
-    },
-    {
-      "id": 6,
-      "name": "Kingz Terra Rashguard",
-      "category": "Rashguard",
-      "description": "Durable polyester/spandex fabric Snug athletic fit Fully sublimated graphics Material: 80% Polyester, 20% Spandex",
-      "price": 40,
-      "images": [
-        "/pictures/kingz/galvao/DSC_0426_1620x.webp",
-        "/pictures/kingz/galvao/DSC_0433_1620x.webp",
-        "/pictures/kingz/galvao/DSC_0438_1620x.webp",
-        "/pictures/kingz/galvao/DSC_0440_1620x.webp",
-        "/pictures/kingz/galvao/DSC_0442_1620x.webp",
-        "/pictures/kingz/galvao/DSC_0446_1620x.webp"
-      ],
-      "availableSizes": ["M", "L", "XL"],
-      "stockBySize": {
-        "M": 7,
-        "L": 7,
-        "XL": 8
-      },
-      "new": true
-    },
-    {
-      "id": 7,
-      "name": "Kingz Flow Rashguard",
-      "category": "Rashguard",
-      "description": "Durable polyester/spandex fabric Snug athletic fit Fully sublimated graphics Materials: 90% Polyester, 10% Spandex.",
-      "price": 40,
-      "images": [
-        "/pictures/kingz/negrashark/DSC_6956_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6961_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6965_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6967_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6969_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6971_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6975_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6976_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6977_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6978_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6979_1620x.webp"
-      ],
-      "availableSizes": ["L", "XL"],
-      "stockBySize": {
-        "L": 5,
-        "XL": 5
-      },
-      "new": true
-
-    },
-    {
-      "id": 8,
-      "name": "No Gi Rashguard",
-      "category": "Rashguard",
-      "description": "ADCC Submission Grappling World Federation Series - Short Sleeve Rash Guard.",
-      "price": 40,
-      "images": [
-
-        "/pictures/adcc/adcc_SS_back.webp",
-        "/pictures/adcc/adcc_SS_front.webp",
-        "/pictures/adcc/adcc_SS_left.webp",
-        "/pictures/adcc/adcc_SS_right.webp"
-      ],
-      "availableSizes": ["M", "L", "XL"],
-      "stockBySize": {
-        "M": 7,
-        "L": 7,
-        "XL": 8
-      },
-      "new": true
-
-    }
-  ]
 }
 
 
