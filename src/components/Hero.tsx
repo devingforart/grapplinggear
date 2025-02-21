@@ -13,8 +13,8 @@ const Hero: React.FC<HeroProps> = ({ images }) => {
       </div>
       <div className="hero__content">
         <h1 className="hero__title">Innovación en Grappling</h1>
-        <p className="hero__subtitle">Equipamiento premium para el guerrero moderno</p>
-        <a href="productos" className="hero__cta">Explora ahora</a>
+{/*         <p className="hero__subtitle">Equipamiento premium para el guerrero moderno</p>
+ */}        <a href="productos" className="hero__cta">Explora ahora</a>
       </div>
     </section>
   );
