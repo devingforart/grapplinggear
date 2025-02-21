@@ -1,11 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import { Provider } from 'react-redux'; // Importa el Provider de Redux
-import store from './store'; // Importa el store de Redux
-import { CartProvider } from './context/CartContext'; // Contexto de Carrito
-import { InventoryProvider } from './context/InventoryContext'; // Contexto de Inventario
-import { NotificationProvider } from './context/NotificationContext'; // Contexto de Notificaciones
+import { Provider } from 'react-redux';
+import store from './store';
+import { CartProvider } from './context/CartContext';
+import { InventoryProvider } from './context/InventoryContext';
+import { NotificationProvider } from './context/NotificationContext';
 import './scss/main.scss';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

@@ -1,3 +1,8 @@
+// src/components/Head.tsx
+
+// Agrega esta línea al inicio del archivo
+declare module 'react-helmet';
+
 import React from 'react';
 import { Helmet } from 'react-helmet';
 

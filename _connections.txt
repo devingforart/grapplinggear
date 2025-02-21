@@ -72,6 +72,14 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
 --------------------------------------------------------------------------------
 
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/vite-env.d.ts
+
+Contenido:
+/// <reference types="vite/client" />
+
+
+--------------------------------------------------------------------------------
+
 /home/southatoms/Escritorio/develop/personal/grappling-gear/src/pages/ProductsAdvanced.tsx
 
 Contenido:
@@ -444,6 +452,66 @@ const ProductDetail: React.FC = () => {
 };
 
 export default ProductDetail;
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/store/index.ts
+
+Contenido:
+// src/store/index.ts
+
+import { Product } from "../types/product";
+
+// Definir la interfaz para el estado del carrito
+interface CartItem {
+  id: number;
+  quantity: number;
+  size: string;
+}
+
+// src/store/index.ts
+
+// Definimos la acción ADD_TO_CART
+export const ADD_TO_CART = 'ADD_TO_CART';
+
+export interface AddToCartAction {
+  type: typeof ADD_TO_CART;
+  payload: Product[];
+}
+
+// Otros elementos como el reducer y el estado de tu tienda
+
+interface CartState {
+  cart: CartItem[];
+}
+
+// Estado inicial
+const initialState: CartState = {
+  cart: [],
+};
+
+// Acciones
+interface RemoveFromCartAction {
+  type: 'REMOVE_FROM_CART';
+  payload: { id: number };
+}
+
+type CartAction = RemoveFromCartAction;
+
+const cartReducer = (state = initialState, action: CartAction): CartState => {
+  switch (action.type) {
+    case 'REMOVE_FROM_CART':
+      return {
+        ...state,
+        cart: state.cart.filter((item) => item.id !== action.payload.id), // Aquí TypeScript puede inferir correctamente el tipo
+      };
+    default:
+      return state;
+  }
+};
+
+export default cartReducer;
 
 
 --------------------------------------------------------------------------------
@@ -975,6 +1043,11 @@ export default Cart;
 /home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/Head.tsx
 
 Contenido:
+// src/components/Head.tsx
+
+// Agrega esta línea al inicio del archivo
+declare module 'react-helmet';
+
 import React from 'react';
 import { Helmet } from 'react-helmet';
 
@@ -987,210 +1060,6 @@ const Head: React.FC = () => (
 );
 
 export default Head;
-
-
---------------------------------------------------------------------------------
-
-/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/products.json
-
-Contenido:
-{
-  "products": [
-    {
-      "id": 1,
-      "name": "Future Kimonos v1.0  BLACK Short Sleeve Rash Guard",
-      "category": "Rashguard",
-      "description": "Short sleeve black Jiu Jitsu rash guard with clean design and engineered with FUTURE technology materials for a hard wearing Jiu Jitsu player. The minimalist style rash guard combined with the design from John Lacko brings the old and new together.",
-      "price": 160000,
-      "images": [
-        "/pictures/ArtBoard/Artboard1Blackfront.webp",
-        "/pictures/ArtBoard/Artboard1BlackSide.webp"
-      ],
-      "availableSizes": ["S", "M", "L", "XL"],
-      "stockBySize": {
-        "S": 4,
-        "M": 4,
-        "L": 4,
-        "XL": 3
-      },
-      "new": false,
-      "landing":true
-
-
-    },
-    {
-      "id": 2,
-      "name": "Future Kimonos v1.0 - WHITE Short Sleeve Rash Guard",
-      "category": "Rashguard",
-      "description": "Short sleeve white Jiu Jitsu rash guard with clean design and engineered with FUTURE technology materials for a hard wearing Jiu Jitsu player. The minimalist style rash guard combined with the design from John Lacko brings the old and new together.",
-      "price": 160000,
-      "images": [
-        "/pictures/ArtBoard/Artboard1WhitefrontWhite.webp",
-        "/pictures/ArtBoard/Artboard1WhitesideWhite.webp"
-      ],
-      "availableSizes": ["S", "M", "L", "XL"],
-      "stockBySize": {
-        "S": 5,
-        "M": 5,
-        "L": 5,
-        "XL": 5
-      },
-      "new": true,
-      "landing":true
-
-
-    },
-    {
-      "id": 3,
-      "name": "Gordon Ryan ADCC 2022 - Gold Short Sleeve Rash Guard",
-      "category": "Rashguard",
-      "description": "GORDON RYAN ADCC 2022 Designed for ADCC 2022 as part of the 2022 Gordon Ryan x Future Kimonos 5 piece collection, made using our most premium grade MATTE fabric, moisture wicking and nano-silver coated, built with grappling specific smoothseam work for durability and strength, this rash guard is made in the SHORT SLEEVE variation of our most popular cut and fit. Expect this premium rash guard to feel buttery smooth with our matte material, feeling soft and light for grappling. Colors may slightly vary from rendered images, but this design is intended to have a more pastel color palette. Available to preview using our cutting edge 3D Future Viewer Technology, allowing you to change in real-time custom fields and see the exact configuration of your product before you buy. 3 customization fields are available with this product, including your name on the back, social tag below your name, and your country flag on the sleeve. This is truly a chance to have your own one of a kind competition set that you can proudly wear during competition or training time. With so many colors, pattern and custom variations, you are guaranteed to stand out from the rest. To create your own CUSTOM one of a kind rash guard, simply choose a style in your size that suits you, complete the form with your name, social, and country details, then add the item to the cart before checking out. We take care of the rest.",
-      "price": 160000,
-      "images": [
-        "/pictures/gordobrian/dorada_front.webp"
-      ],
-      "availableSizes": ["S", "M", "L"],
-      "stockBySize": {
-        "S": 10,
-        "M": 10,
-        "L": 10
-      },
-      "new": false,
-      "landing":true
-
-
-    },
-    {
-      "id": 4,
-      "name": "Kingz Draft Rashguard",
-      "category": "Rashguard",
-      "description": "Durable polyester/spandex fabric Snug athletic fit Fully sublimated graphics Material: 80% Polyester, 20% Spandex *Please follow wash and care instructions to ensure the longevity of your rash guard.",
-      "price": 150000,
-      "images": [
-        "/pictures/kingz/draft_rash_front/DSC_6926_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6932_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6933_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6938_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6940_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6942_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6944_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6948_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6949_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6950_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6951_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6952_1620x.webp",
-        "/pictures/kingz/draft_rash_front/DSC_6955_1620x.webp"
-      ],
-      "availableSizes": ["M", "L", "XL"],
-      "stockBySize": {
-        "M": 8,
-        "L": 9,
-        "XL": 8
-      },
-      "new": false,
-      "landing":false
-
-    },
-    {
-      "id": 5,
-      "name": "Gordon Ryan ADCC 2024 Black - Short Sleeve Rash Guard",
-      "category": "Rashguard",
-      "description": "Introducing the official kit for Gordon Ryan ADCC super-fights in 2024. This short sleeve rash guard is made with competition spec fabric, moisture-wicking for optimal performance. Engineered for peak performance. A must-have for competing at the ADCC 2024 super-fights (or just training at your academy), this short sleeve rash guard is constructed with competition spec fabric and moisture-wicking capabilities. Stay cool, dry, and comfortable while you dominate the competition. Expect this premium rash guard to feel buttery smooth with our matte material, feeling soft and light for grappling. Colors may slightly vary from rendered images, but this design is intended to have a more pastel color palette.",
-      "price": 160000,
-      "images": [
-        "/pictures/gordobrian/negra/blackgordonusaSSback.webp",
-        "/pictures/gordobrian/negra/blackgordonusaSSfront.webp"
-      ],
-      "availableSizes": ["S", "M", "L"],
-      "stockBySize": {
-        "S": 6,
-        "M": 6,
-        "L": 6
-      },
-      "new": true,
-      "landing":true
-
-
-    },
-    {
-      "id": 6,
-      "name": "Kingz Terra Rashguard",
-      "category": "Rashguard",
-      "description": "Durable polyester/spandex fabric Snug athletic fit Fully sublimated graphics Material: 80% Polyester, 20% Spandex",
-      "price": 150000,
-      "images": [
-        "/pictures/kingz/galvao/DSC_0426_1620x.webp",
-        "/pictures/kingz/galvao/DSC_0433_1620x.webp",
-        "/pictures/kingz/galvao/DSC_0438_1620x.webp",
-        "/pictures/kingz/galvao/DSC_0440_1620x.webp",
-        "/pictures/kingz/galvao/DSC_0442_1620x.webp",
-        "/pictures/kingz/galvao/DSC_0446_1620x.webp"
-      ],
-      "availableSizes": ["M", "L", "XL"],
-      "stockBySize": {
-        "M": 7,
-        "L": 7,
-        "XL": 8
-      },
-      "new": true,
-      "landing":false
-
-    },
-    {
-      "id": 7,
-      "name": "Kingz Flow Rashguard",
-      "category": "Rashguard",
-      "description": "Durable polyester/spandex fabric Snug athletic fit Fully sublimated graphics Materials: 90% Polyester, 10% Spandex.",
-      "price": 150000,
-      "images": [
-        "/pictures/kingz/negrashark/DSC_6956_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6961_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6965_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6967_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6969_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6971_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6975_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6976_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6977_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6978_1620x.webp",
-        "/pictures/kingz/negrashark/DSC_6979_1620x.webp"
-      ],
-      "availableSizes": ["L", "XL"],
-      "stockBySize": {
-        "L": 5,
-        "XL": 5
-      },
-      "new": true,
-      "landing":false
-
-
-    },
-    {
-      "id": 8,
-      "name": "No Gi Rashguard",
-      "category": "Rashguard",
-      "description": "ADCC Submission Grappling World Federation Series - Short Sleeve Rash Guard.",
-      "price": 160000,
-      "images": [
-
-        "/pictures/adcc/adcc_SS_back.webp",
-        "/pictures/adcc/adcc_SS_front.webp",
-        "/pictures/adcc/adcc_SS_left.webp",
-        "/pictures/adcc/adcc_SS_right.webp"
-      ],
-      "availableSizes": ["M", "L", "XL"],
-      "stockBySize": {
-        "M": 7,
-        "L": 7,
-        "XL": 8
-      },
-      "new": true,
-      "landing":false
-
-
-    }
-  ]
-}
 
 
 --------------------------------------------------------------------------------
@@ -1403,7 +1272,7 @@ export default NotificationContainer;
 /home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/ProductGrid.tsx
 
 Contenido:
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import ProductCard from './ProductCard';
 import { useSelector, useDispatch } from 'react-redux';
@@ -1413,6 +1282,16 @@ import { ADD_TO_CART } from '../store'; // Asegúrate de importar las acciones n
 
 const ProductGrid: React.FC = () => {
   const dispatch = useDispatch();
+  const [isVisible, setIsVisible] = useState(true); // Estado para controlar la visibilidad de la flecha
+
+  // Función para verificar el scroll
+  const handleScroll = () => {
+    if (window.scrollY > 100) { // Si el usuario ha hecho scroll hacia abajo más de 100px
+      setIsVisible(false);
+    } else {
+    return
+    }
+  };
 
   // Acceder a los productos desde el estado global
   const products: Product[] = useSelector((state: any) => state.products);
@@ -1422,34 +1301,55 @@ const ProductGrid: React.FC = () => {
     if (products.length === 0) {
       dispatch({ type: ADD_TO_CART, payload: productsData.products }); // Agregar productos al estado global
     }
+
+    // Agregar el event listener para el scroll
+    window.addEventListener('scroll', handleScroll);
+
+    // Limpiar el event listener cuando el componente se desmonte
+    return () => window.removeEventListener('scroll', handleScroll);
   }, [dispatch, products.length]);
 
   if (!products || products.length === 0) {
-    // Si products es undefined o vacío, puedes retornar un mensaje o cargar un loading
     return <div>Cargando productos...</div>;
   }
 
   return (
-    <motion.section
-      id="nuestra-coleccion"
-      className="product-grid-creative"
-      initial={{ opacity: 0, y: 50 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.8, ease: "easeOut" }}
-    >
-      <div className="collection-intro">
-        <h2>Nuevos arribos</h2>
-        <p>
-          Descubre la fusión perfecta entre tecnología y pasión por el grappling.
-        </p>
-      </div>
-      <div className="product-grid-creative__list">
-        {products.map(product => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
-    </motion.section>
+    <>
+      {/* Flecha animada centrada en la pantalla */}
+      {isVisible && (
+        <motion.div
+          className="scroll-arrow"
+          animate={{ y: [0, 10, 0] }} // Hace un pequeño rebote
+          transition={{ repeat: Infinity, duration: 1, ease: "easeInOut" }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" width="30" height="30">
+            <path fill="none" d="M0 0h24v24H0z" />
+            <path d="M12 21l-8-8h5V3h6v10h5z" />
+          </svg>
+        </motion.div>
+      )}
+
+      <motion.section
+        id="nuestra-coleccion"
+        className="product-grid-creative"
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.1 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+      >
+        <div className="collection-intro">
+          <h2>Nuevos arribos</h2>
+          <p>
+            Descubre la fusión perfecta entre tecnología y pasión por el grappling.
+          </p>
+        </div>
+        <div className="product-grid-creative__list">
+          {products.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      </motion.section>
+    </>
   );
 };
 
@@ -2444,6 +2344,29 @@ Contenido:
 }
 
 
+.header__logo a {
+  font-family: 'Montserrat', sans-serif; /* Usamos la fuente Montserrat */
+  font-size: 2rem; /* Tamaño de fuente más grande */
+  font-weight: 600; /* Peso de fuente más grueso */
+  letter-spacing: 2px; /* Espaciado entre letras para un toque moderno */
+  text-transform: uppercase; /* Poner todo en mayúsculas */
+  color: var(--primary-color);
+  transition: all 0.3s ease-in-out; /* Transición suave */
+
+  &:hover {
+    color: var(--accent-color); /* Cambiar color al hacer hover */
+    letter-spacing: 4px; /* Aumentar espaciado al hacer hover */
+  }
+
+  @media (max-width: 768px) {
+    font-size: 1.5rem; /* Reducir tamaño de fuente en pantallas móviles */
+  }
+
+  @media (max-width: 480px) {
+    font-size: 1.2rem; /* Reducir aún más en pantallas muy pequeñas */
+  }
+}
+
 
 --------------------------------------------------------------------------------
 
@@ -2820,29 +2743,41 @@ Contenido:
 /home/southatoms/Escritorio/develop/personal/grappling-gear/src/scss/components/_themeToggle.scss
 
 Contenido:
-// src/scss/components/_themeToggle.scss
 .theme-toggle {
   position: fixed;
   bottom: 2rem;
   right: 2rem;
-  width: 3.5rem;
-  height: 3.5rem;
+  width: 2.5rem; /* Tamaño más pequeño */
+  height: 2.5rem; /* Tamaño más pequeño */
   border: none;
   border-radius: 50%;
   background-color: var(--accent-color);
   color: var(--background-color);
-  font-size: 1.5rem;
-  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 6px 12px rgba(0,0,0,0.3);
-  transition: transform 0.2s, background-color 0.3s;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
   z-index: 4000;
   
+  /* Diseño tipo "toggle" con un efecto suave al hacer hover */
   &:hover {
-    transform: scale(1.1);
     background-color: var(--secondary-color);
+    transform: rotate(180deg) scale(1.1);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3); /* Sombra más intensa */
+  }
+
+  /* Icono creativo en lugar de solo texto */
+  svg {
+    width: 1.5rem; /* Icono más pequeño */
+    height: 1.5rem; /* Icono más pequeño */
+    transition: transform 0.3s ease-in-out;
+    
+    /* Efecto cuando se hace hover */
+    &:hover {
+      transform: scale(1.2);
+    }
   }
 }
 
@@ -3197,8 +3132,15 @@ Contenido:
       gap: 1.5rem;
     }
   }
-  
+  .scroll-arrow {
+    position: fixed;  /* Esto fija la flecha en la pantalla */
+    bottom: 10%;         /* Posiciona la flecha en el centro vertical */
+    left: 50vw;        /* Posiciona la flecha en el centro horizontal */
+    transform: translate(-50%, -50%);  /* Centra perfectamente */
+    cursor: pointer;
+  }
 
+  
 
 --------------------------------------------------------------------------------
 
@@ -3532,6 +3474,27 @@ Contenido:
     height: auto;
     object-fit: cover;
   }
+}
+
+
+--------------------------------------------------------------------------------
+
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/types/product.d.ts
+
+Contenido:
+// src/types/product.ts
+
+export interface Product {
+  id: number;
+  name: string;
+  category: string;                // Propiedad agregada para la categoría
+  description: string;
+  price: number;
+  images: string[];
+  availableSizes: string[];        // Propiedad agregada para los talles disponibles
+  stockBySize: Partial<Record<string, number>>; // Permite que algunas claves (como "XL") puedan faltar
+  new: boolean;
+  landing: boolean;
 }
 
 
