@@ -1,16 +1,11 @@
-// src/components/ProductCard.tsx
-import React from 'react';
+import React, { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { Product } from '../types/product';
 
-const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
-
-
-    // Función para formatear el precio con el signo de pesos y separadores de miles
-    const formatPrice = (price: number) => {
-      return `$${price.toLocaleString('es-AR')}`; // Utiliza 'es-AR' para formato con separadores de miles
-    };
-  
+const ProductCard: React.FC<{ product: Product }> = memo(({ product }) => {
+  const formatPrice = (price: number) => {
+    return `$${price.toLocaleString('es-AR')}`;
+  };
 
   return (
     <div className="product-card">
@@ -20,6 +15,7 @@ const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
             src={product.images[0]}
             alt={product.name}
             className="product-card__image"
+            loading="lazy" // Optimización de carga perezosa
           />
           <div className="product-card__overlay">
             <span className="product-card__quick-view">Ver Detalle</span>
@@ -35,6 +31,6 @@ const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
       </div>
     </div>
   );
-};
+});
 
 export default ProductCard;

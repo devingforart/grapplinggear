@@ -350,3 +350,26 @@
   }
 }
 
+
+.header__logo a {
+  font-family: 'Montserrat', sans-serif; /* Usamos la fuente Montserrat */
+  font-size: 2rem; /* Tamaño de fuente más grande */
+  font-weight: 600; /* Peso de fuente más grueso */
+  letter-spacing: 2px; /* Espaciado entre letras para un toque moderno */
+  text-transform: uppercase; /* Poner todo en mayúsculas */
+  color: var(--primary-color);
+  transition: all 0.3s ease-in-out; /* Transición suave */
+
+  &:hover {
+    color: var(--accent-color); /* Cambiar color al hacer hover */
+    letter-spacing: 4px; /* Aumentar espaciado al hacer hover */
+  }
+
+  @media (max-width: 768px) {
+    font-size: 1.5rem; /* Reducir tamaño de fuente en pantallas móviles */
+  }
+
+  @media (max-width: 480px) {
+    font-size: 1.2rem; /* Reducir aún más en pantallas muy pequeñas */
+  }
+}

@@ -1,36 +1,39 @@
 /home/southatoms/Escritorio/develop/personal/grappling-gear/src/App.tsx
 
 Contenido:
-// src/App.tsx
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Home from './pages/Home';
-import ProductsAdvanced from './pages/ProductsAdvanced';
-import ProductDetail from './pages/ProductDetail';
-import Cart from './components/Cart';
-import Checkout from './components/Checkout';
-import Contactanos from './pages/Contactanos'; // Importa el nuevo componente
-import ThemeToggle from './components/ThemeToggle';
 import Header from './components/Header';
+import ThemeToggle from './components/ThemeToggle';
 import NotificationContainer from './components/NotificationContainer';
+
+// Carga perezosa de componentes
+const Home = lazy(() => import('./pages/Home'));
+const ProductsAdvanced = lazy(() => import('./pages/ProductsAdvanced'));
+const ProductDetail = lazy(() => import('./pages/ProductDetail'));
+const Cart = lazy(() => import('./components/Cart'));
+const Checkout = lazy(() => import('./components/Checkout'));
+const Contactanos = lazy(() => import('./pages/Contactanos'));
 
 const App: React.FC = () => {
   return (
-    <BrowserRouter>
-      <Header />
-      <ThemeToggle />
-      <NotificationContainer />
-      <div className="main-content">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/productos" element={<ProductsAdvanced />} />
-          <Route path="/producto/:id" element={<ProductDetail />} />
-          <Route path="/carrito" element={<Cart />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/contactanos" element={<Contactanos />} />
-        </Routes>
-      </div>
-    </BrowserRouter>
+    <Suspense fallback={<div>Loading...</div>}>
+      <BrowserRouter>
+        <Header />
+        <ThemeToggle />
+        <NotificationContainer />
+        <div className="main-content">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/productos" element={<ProductsAdvanced />} />
+            <Route path="/producto/:id" element={<ProductDetail />} />
+            <Route path="/carrito" element={<Cart />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/contactanos" element={<Contactanos />} />
+          </Routes>
+        </div>
+      </BrowserRouter>
+    </Suspense>
   );
 };
 
@@ -42,24 +45,27 @@ export default App;
 /home/southatoms/Escritorio/develop/personal/grappling-gear/src/main.tsx
 
 Contenido:
-// src/main.tsx
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import { CartProvider } from './context/CartContext';
-import { InventoryProvider } from './context/InventoryContext';
-import { NotificationProvider } from './context/NotificationContext';
+import { Provider } from 'react-redux'; // Importa el Provider de Redux
+import store from './store'; // Importa el store de Redux
+import { CartProvider } from './context/CartContext'; // Contexto de Carrito
+import { InventoryProvider } from './context/InventoryContext'; // Contexto de Inventario
+import { NotificationProvider } from './context/NotificationContext'; // Contexto de Notificaciones
 import './scss/main.scss';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <InventoryProvider>
-      <CartProvider>
-        <NotificationProvider>
-          <App />
-        </NotificationProvider>
-      </CartProvider>
-    </InventoryProvider>
+    <Provider store={store}> {/* Proveedor de Redux */}
+      <InventoryProvider> {/* Proveedor de Inventario */}
+        <CartProvider> {/* Proveedor de Carrito */}
+          <NotificationProvider> {/* Proveedor de Notificaciones */}
+            <App />
+          </NotificationProvider>
+        </CartProvider>
+      </InventoryProvider>
+    </Provider>
   </React.StrictMode>
 );
 
@@ -966,6 +972,25 @@ export default Cart;
 
 --------------------------------------------------------------------------------
 
+/home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/Head.tsx
+
+Contenido:
+import React from 'react';
+import { Helmet } from 'react-helmet';
+
+const Head: React.FC = () => (
+  <Helmet>
+    <title>Grappling Gear</title>
+    <meta name="description" content="Compra el mejor equipamiento para grappling." />
+    <meta name="robots" content="index, follow" />
+  </Helmet>
+);
+
+export default Head;
+
+
+--------------------------------------------------------------------------------
+
 /home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/products.json
 
 Contenido:
@@ -1276,19 +1301,14 @@ export default Footer;
 /home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/ProductCard.tsx
 
 Contenido:
-// src/components/ProductCard.tsx
-import React from 'react';
+import React, { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { Product } from '../types/product';
 
-const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
-
-
-    // Función para formatear el precio con el signo de pesos y separadores de miles
-    const formatPrice = (price: number) => {
-      return `$${price.toLocaleString('es-AR')}`; // Utiliza 'es-AR' para formato con separadores de miles
-    };
-  
+const ProductCard: React.FC<{ product: Product }> = memo(({ product }) => {
+  const formatPrice = (price: number) => {
+    return `$${price.toLocaleString('es-AR')}`;
+  };
 
   return (
     <div className="product-card">
@@ -1298,6 +1318,7 @@ const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
             src={product.images[0]}
             alt={product.name}
             className="product-card__image"
+            loading="lazy" // Optimización de carga perezosa
           />
           <div className="product-card__overlay">
             <span className="product-card__quick-view">Ver Detalle</span>
@@ -1313,7 +1334,7 @@ const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
       </div>
     </div>
   );
-};
+});
 
 export default ProductCard;
 
@@ -1382,20 +1403,34 @@ export default NotificationContainer;
 /home/southatoms/Escritorio/develop/personal/grappling-gear/src/components/ProductGrid.tsx
 
 Contenido:
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import ProductCard from './ProductCard';
-import productsData from './products.json';
+import { useSelector, useDispatch } from 'react-redux';
+import productsData from './products.json'; // Importamos los productos iniciales
 import { Product } from '../types/product';
+import { ADD_TO_CART } from '../store'; // Asegúrate de importar las acciones necesarias
 
 const ProductGrid: React.FC = () => {
-  const products: Product[] = productsData.products;
+  const dispatch = useDispatch();
 
-  // Filtramos los productos para mostrar solo los que tienen landing: true
-  const landingProducts = products.filter(product => product.landing === true);
+  // Acceder a los productos desde el estado global
+  const products: Product[] = useSelector((state: any) => state.products);
+
+  // Si el estado de productos está vacío, inicializamos con los productos desde el archivo JSON
+  useEffect(() => {
+    if (products.length === 0) {
+      dispatch({ type: ADD_TO_CART, payload: productsData.products }); // Agregar productos al estado global
+    }
+  }, [dispatch, products.length]);
+
+  if (!products || products.length === 0) {
+    // Si products es undefined o vacío, puedes retornar un mensaje o cargar un loading
+    return <div>Cargando productos...</div>;
+  }
 
   return (
-    <motion.section 
+    <motion.section
       id="nuestra-coleccion"
       className="product-grid-creative"
       initial={{ opacity: 0, y: 50 }}
@@ -1410,7 +1445,7 @@ const ProductGrid: React.FC = () => {
         </p>
       </div>
       <div className="product-grid-creative__list">
-        {landingProducts.map(product => (
+        {products.map(product => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>
@@ -1537,7 +1572,6 @@ export default Checkout;
 /home/southatoms/Escritorio/develop/personal/grappling-gear/src/context/CartContext.tsx
 
 Contenido:
-// src/context/CartContext.tsx
 import { createContext, useState, ReactNode } from 'react';
 import { Product } from '../types/product';
 
@@ -1556,7 +1590,7 @@ interface CartContextType {
 }
 
 export const CartContext = createContext<CartContextType>({
-  cartItems: [],
+  cartItems: [], // Asegúrate de inicializar como un arreglo vacío
   addToCart: () => {},
   removeFromCart: () => {},
   updateCartItem: () => {},
@@ -1568,7 +1602,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const addToCart = (item: CartItem) => {
     setCartItems(prevItems => {
-      // Se busca si ya existe el mismo producto con el mismo talle
       const index = prevItems.findIndex(
         ci => ci.product.id === item.product.id && ci.size === item.size
       );
@@ -3165,6 +3198,7 @@ Contenido:
     }
   }
   
+
 
 --------------------------------------------------------------------------------
 

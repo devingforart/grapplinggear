@@ -32,4 +32,12 @@
       gap: 1.5rem;
     }
   }
+  .scroll-arrow {
+    position: fixed;  /* Esto fija la flecha en la pantalla */
+    bottom: 10%;         /* Posiciona la flecha en el centro vertical */
+    left: 50vw;        /* Posiciona la flecha en el centro horizontal */
+    transform: translate(-50%, -50%);  /* Centra perfectamente */
+    cursor: pointer;
+  }
+
   

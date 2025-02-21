@@ -1,4 +1,3 @@
-// src/context/CartContext.tsx
 import { createContext, useState, ReactNode } from 'react';
 import { Product } from '../types/product';
 
@@ -17,7 +16,7 @@ interface CartContextType {
 }
 
 export const CartContext = createContext<CartContextType>({
-  cartItems: [],
+  cartItems: [], // Asegúrate de inicializar como un arreglo vacío
   addToCart: () => {},
   removeFromCart: () => {},
   updateCartItem: () => {},
@@ -29,7 +28,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const addToCart = (item: CartItem) => {
     setCartItems(prevItems => {
-      // Se busca si ya existe el mismo producto con el mismo talle
       const index = prevItems.findIndex(
         ci => ci.product.id === item.product.id && ci.size === item.size
       );
